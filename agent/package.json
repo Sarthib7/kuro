@@ -1,0 +1,30 @@
+{
+  "name": "@kuro/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "analyze": "tsx src/cli.ts analyze",
+    "agent": "tsx src/cli.ts agent",
+    "watch": "tsx src/cli.ts watch",
+    "autonomous": "tsx src/cli.ts autonomous",
+    "positions": "tsx src/cli.ts positions",
+    "status": "tsx src/cli.ts status",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "@solana/web3.js": "^1.95.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.104.0",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

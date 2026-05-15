@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+target/
+*.log
+.DS_Store
+
+# executor secrets / state
+executor/keypair.json
+executor/state.json
+executor/positions.json
