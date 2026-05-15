@@ -6,16 +6,19 @@ import { ExecutorClient } from "./data/executor.js";
 import { startPoolWatcher } from "./watcher/pool_watcher.js";
 import { runAutonomous } from "./autonomous/loop.js";
 import { loadPositions } from "./autonomous/positions.js";
+import { runBacktest, formatReport } from "./backtest/index.js";
 import type { SkillContext } from "./skills/types.js";
 
 function usage(): never {
   console.error(`usage:
-  kuro analyze <mint> [--topN=10]    one-shot token analysis
-  kuro agent "<prompt>"              LLM agent with skills (Anthropic)
-  kuro watch                         stream new pools + analyse each
-  kuro autonomous                    full hands-off mode: watch → score → snipe → exit
-  kuro positions                     show open + closed positions
-  kuro status                        executor wallet + risk-cap status`);
+  kuro analyze <mint> [--topN=10]            one-shot token analysis
+  kuro agent "<prompt>"                      LLM agent with skills
+  kuro watch                                 stream new pools + analyse each
+  kuro autonomous                            hands-off mode: watch → score → snipe → exit
+  kuro backtest [--limit=100] [--max-age-hours=72]
+                                             historical replay against current policy
+  kuro positions                             show open + closed positions
+  kuro status                                executor wallet + risk-cap status`);
   process.exit(1);
 }
 
@@ -114,6 +117,31 @@ async function main() {
   if (cmd === "status") {
     const r = await new ExecutorClient().status();
     console.log(JSON.stringify(r, null, 2));
+    return;
+  }
+
+  if (cmd === "backtest") {
+    const limitArg = rest.find((a) => a.startsWith("--limit="));
+    const ageArg = rest.find((a) => a.startsWith("--max-age-hours="));
+    const limit = limitArg ? Number(limitArg.split("=")[1]) : 100;
+    const max_age_hours = ageArg ? Number(ageArg.split("=")[1]) : undefined;
+    console.error(
+      `[kuro] backtesting ${limit} recent pump.fun launches` +
+        (max_age_hours ? ` (last ${max_age_hours}h)…` : "…"),
+    );
+    const report = await runBacktest({
+      limit,
+      max_age_hours,
+      onProgress: (done, total) => {
+        if (done % 10 === 0 || done === total) {
+          process.stderr.write(`\r[kuro] simulated ${done}/${total}`);
+        }
+      },
+    });
+    process.stderr.write("\n");
+    console.log(formatReport(report));
+    console.log("\n--- full JSON report below ---");
+    console.log(JSON.stringify(report, null, 2));
     return;
   }
 
