@@ -1,27 +1,26 @@
 # Railway service config for kuro-executor (Rust hot path).
 #
-# Build: nixpacks auto-detects Cargo.toml in this directory.
-# Deploy: built binary runs as the only process. Health check at /healthz so
-# Railway can ping liveness without hitting Solana RPC.
+# Build: explicit Dockerfile (Railpack/Nixpacks OOMed on the full solana-sdk
+# crate graph). Dockerfile caps cargo parallelism at 2 jobs to fit in Railway's
+# default builder memory.
 #
-# Required env vars to set in the Railway service dashboard:
+# Required env vars in the Railway service dashboard:
 #   SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
-#   KURO_DATA_DIR=/data
 #   KURO_BIND=0.0.0.0:7777
+#   KURO_DATA_DIR=/data
 #   KURO_MAX_TRADE_SOL=0.02
 #   KURO_DAILY_CAP_SOL=0.1
-#   KURO_DRAWDOWN_KILL_PCT=20
 #
 # Required volume:
-#   - Mount at /data, size >= 1 GB. Holds keypair.json (the hot wallet) and
-#     state.json (daily risk caps). DO NOT lose this volume — losing keypair.json
-#     means losing the wallet.
+#   Mount at /data, size >= 1 GB. Holds keypair.json + state.json. Losing this
+#   volume = losing the wallet.
 
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "./target/release/kuro-executor"
+startCommand = "kuro-executor"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
