@@ -1,0 +1,31 @@
+# Railway service config for kuro-autonomous (Node worker).
+#
+# Build: nixpacks auto-detects package.json in this directory.
+# Deploy: long-running worker, no public HTTP. Restarts on failure.
+#
+# Required env vars to set in the Railway service dashboard:
+#   SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
+#   KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:7777
+#   KURO_POSITIONS_PATH=/data/positions.json
+#   KURO_BRAIN=glm                  # or anthropic / codex / openai
+#   GLM_API_KEY=...                 # (for the brain you chose)
+#   KURO_AUTONOMOUS_LIVE=false      # leave false until the backtest validates
+#   KURO_SNIPE_SOL=0.01
+#   KURO_MAX_SLIPPAGE_BPS=1500
+#   KURO_TAKE_PROFIT_PCT=50
+#   KURO_STOP_LOSS_PCT=30
+#   KURO_MAX_HOLD_SECONDS=600
+#
+# Optional enrichment keys:
+#   BIRDEYE_API_KEY, ZERION_API_KEY, GMGN_API_KEY, JUPITER_API_KEY
+#
+# Required volume (separate from the executor's):
+#   - Mount at /data, size >= 1 GB. Holds positions.json (open + closed trades).
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npx tsx src/cli.ts autonomous"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

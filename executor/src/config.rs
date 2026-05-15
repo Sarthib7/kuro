@@ -14,24 +14,41 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
+        // In container envs (Railway, fly.io, etc.) we bind to 0.0.0.0; locally
+        // we default to loopback. The detection heuristic: KURO_BIND wins,
+        // otherwise if PORT or RAILWAY_ENVIRONMENT is set bind to 0.0.0.0:7777,
+        // otherwise 127.0.0.1:7777.
+        let bind_addr = env::var("KURO_BIND").unwrap_or_else(|_| {
+            if env::var("RAILWAY_ENVIRONMENT").is_ok() || env::var("PORT").is_ok() {
+                "0.0.0.0:7777".into()
+            } else {
+                "127.0.0.1:7777".into()
+            }
+        });
+
+        // Persistent state goes under KURO_DATA_DIR if set (Railway volume mount),
+        // otherwise alongside the executor binary in ./executor/. Individual
+        // path overrides still win (KURO_KEYPAIR_PATH / KURO_STATE_PATH).
+        let data_dir = env::var("KURO_DATA_DIR").unwrap_or_else(|_| "./executor".into());
+
         Ok(Self {
-            bind_addr: env::var("KURO_BIND").unwrap_or_else(|_| "127.0.0.1:7777".into()),
+            bind_addr,
             rpc_url: env::var("SOLANA_RPC_URL")
                 .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".into()),
             jito_url: env::var("JITO_BLOCK_ENGINE_URL")
                 .unwrap_or_else(|_| "https://mainnet.block-engine.jito.wtf/api/v1/bundles".into()),
             keypair_path: env::var("KURO_KEYPAIR_PATH")
-                .unwrap_or_else(|_| "./executor/keypair.json".into()),
+                .unwrap_or_else(|_| format!("{}/keypair.json", data_dir)),
             state_path: env::var("KURO_STATE_PATH")
-                .unwrap_or_else(|_| "./executor/state.json".into()),
+                .unwrap_or_else(|_| format!("{}/state.json", data_dir)),
             max_trade_sol: env::var("KURO_MAX_TRADE_SOL")
                 .ok()
                 .and_then(|s| s.parse().ok())
-                .unwrap_or(0.1),
+                .unwrap_or(0.02),
             daily_cap_sol: env::var("KURO_DAILY_CAP_SOL")
                 .ok()
                 .and_then(|s| s.parse().ok())
-                .unwrap_or(1.0),
+                .unwrap_or(0.1),
             drawdown_kill_pct: env::var("KURO_DRAWDOWN_KILL_PCT")
                 .ok()
                 .and_then(|s| s.parse().ok())

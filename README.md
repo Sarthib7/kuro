@@ -1,6 +1,7 @@
 <h1 align="center">kuro</h1>
 
-<p align="center">An autonomous Solana trading agent. Sniper, arbitrage, and analysis — with the LLM kept out of the hot path.</p>
+<p align="center"><strong>Open, self-hosted, multichain Personal AI CFO.</strong></p>
+<p align="center">Trade, snipe, analyze, and run autonomous strategies through chat — no browser wallet, no third-party backend, no closed-source CLI in the path. Starting with deep Solana coverage; multichain in the roadmap.</p>
 
 <p align="center">
   <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/Claude_Code-skill_compatible-blueviolet" alt="Claude Code compatible"></a>
@@ -10,12 +11,20 @@
 
 ## What it is
 
-kuro is two things bolted together:
+kuro is a **multichain Personal AI CFO** in the spirit of [Minara](https://minara.ai), with three honest differences:
 
-1. A **standalone Solana trading bot** (`kuro autonomous`) — watches new pools on Pump.fun / PumpSwap / Raydium / Meteora, runs safety + signal checks, snipes via a deterministic Rust executor with Jito bundles, manages positions with TP/SL/max-hold exits. The whole loop runs without an LLM in the latency path.
-2. A **drop-in skill** for Claude Code / OpenClaw / Hermes — drop `skills/kuro/` into your host agent's skills directory and ask in plain language: *"analyze this mint", "snipe 0.05 SOL of $BONK if safe", "what does kuro think about this dev wallet?"*. The host agent reads `SKILL.md`, picks the right command, shells out to kuro.
+1. **Open-source executor** — Minara's CLI is closed-source npm; kuro's Rust executor + TypeScript agent are fully auditable.
+2. **Self-hosted, no vendor backend** — your wallet and keys never leave your machine. No login flow, no third-party trade routing.
+3. **Sniper-specialized depth** — Minara is a generalist swap/perps tool; kuro is built around Jito-bundled sniping, honeypot simulation, new-pool detection, smart-money signals, and a deterministic autonomous loop.
 
-You can run either mode. Or both at once — autonomous trading on its own machine, interactive analysis from your laptop.
+Today, kuro is **Solana-only**. Multichain (Base / Ethereum / Arbitrum next, eventually Hyperliquid perps) is in the roadmap. The chain abstraction is being designed so the second chain is a module, not a fork.
+
+It runs in two modes:
+
+1. A **standalone autonomous trading agent** (`kuro autonomous`) — watches new pools on Pump.fun / PumpSwap / Raydium / Meteora, runs safety + signal checks, snipes via the Rust executor with Jito bundles, manages positions with TP/SL/max-hold exits. The whole loop runs without an LLM in the latency path.
+2. A **drop-in skill** for Claude Code / OpenClaw / Hermes — drop `skills/kuro/` into your host agent's skills directory and ask in plain language: *"analyze this mint", "snipe 0.05 SOL of $BONK if safe", "enrich this dev wallet"*. The host agent reads `SKILL.md`, picks the right command, shells out to kuro.
+
+Both modes can run at once — autonomous trading on a server, interactive analysis from your laptop.
 
 ## Architecture
 
@@ -93,6 +102,58 @@ cp -r skills/kuro ~/.claude/skills/kuro
 
 Then ask Claude Code naturally: *"kuro, analyze $BONK"*, *"watch for new pump.fun pools"*, *"snipe 0.02 SOL of <mint>, dry-run first"*.
 
+## Deploy to Railway
+
+kuro is built to run as two services on [Railway](https://railway.app) — `kuro-executor` (Rust, owns the wallet) and `kuro-autonomous` (Node worker, runs the trading loop). They talk over Railway's internal network so the executor is never exposed publicly.
+
+**One-time setup**
+
+1. Create a Railway project. Connect this repo.
+2. **Service 1 — `kuro-executor`**
+   - Set service root directory to `executor/`
+   - Attach a Volume mounted at `/data` (≥ 1 GB) — this holds the hot wallet and risk state
+   - Set env vars:
+     ```
+     SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_KEY
+     KURO_BIND=0.0.0.0:7777
+     KURO_DATA_DIR=/data
+     KURO_MAX_TRADE_SOL=0.02
+     KURO_DAILY_CAP_SOL=0.1
+     KURO_DRAWDOWN_KILL_PCT=20
+     ```
+   - Deploy. The executor will auto-generate `/data/keypair.json` on first boot.
+3. **Service 2 — `kuro-autonomous`**
+   - Set service root directory to `agent/`
+   - Attach a separate Volume mounted at `/data` (≥ 1 GB) — holds open/closed position state
+   - Set env vars:
+     ```
+     SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_KEY
+     KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:7777
+     KURO_POSITIONS_PATH=/data/positions.json
+     KURO_BRAIN=glm
+     GLM_API_KEY=your_glm_key
+     KURO_AUTONOMOUS_LIVE=false
+     ```
+   - Optional enrichment keys: `BIRDEYE_API_KEY`, `ZERION_API_KEY`, `GMGN_API_KEY`, `JUPITER_API_KEY`.
+   - Deploy. The autonomous worker will reach the executor via internal DNS.
+
+**Fund the wallet**
+
+Once the executor is running, get its public key:
+```bash
+railway logs --service kuro-executor | grep wallet
+```
+…or hit `/status` from a temporary public domain. Send SOL to that address. Verify with `/status` again.
+
+**Flip live (only after backtest validates)**
+
+Set `KURO_AUTONOMOUS_LIVE=true` in the `kuro-autonomous` service env and redeploy. The Rust executor's per-trade / daily / drawdown caps still apply — even if the agent is jailbroken, the executor rejects oversized swaps.
+
+**Critical**
+
+- Do not lose either volume. The executor volume holds the keypair; the agent volume holds position state.
+- Use Railway's "deploy from PR" sparingly — every deploy to the executor service restarts the process. The risk state persists across restarts (it's in the volume), but in-flight swaps don't.
+
 ## Brain providers (`KURO_BRAIN`)
 
 `kuro agent` and any future LLM-assisted policy decisions go through a pluggable brain abstraction.
@@ -133,16 +194,29 @@ These live in the executor's state (`executor/state.json`) and survive restarts.
 
 ## Roadmap
 
+**Solana depth (gates live trading):**
+- **Backtest harness** — replay historical Pump.fun launches against `policy.decide()` to validate hypothetical EV before flipping `KURO_AUTONOMOUS_LIVE=true`
 - **Persistence** — SQLite in executor for positions / trades / risk (replaces JSON files)
 - **Yellowstone Geyser** — gRPC streaming on Helius dedicated plan for sub-100ms new-pool detection
 - **Multi-RPC `sendTransaction` race** — submit same tx to Helius + Alchemy in parallel for faster landing
-- **Pre-created ATAs** — skip in-line associated-token-account creation on the snipe hot path
 - **Smart-money policy boost** — fold GMGN's alpha-wallet signal into `policy.decide()` as a size multiplier
-- **Backtest harness** — replay historical pump.fun firehose against the current policy
+
+**Multichain expansion (after Solana proves out):**
+- **Chain abstraction** — `Chain` trait in Rust executor + TS data layer abstracting per-chain RPC, swap router, and explorer
+- **Chain 2: Base** — Uniswap V4 + 0x routing, ERC-20 sniper, Aerodrome integration
+- **Chain 3: Ethereum / Arbitrum / BSC** — share the Base implementation
+- **Hyperliquid perps** — open positions, leverage, stop-out logic
+- **Cross-chain bridge intent** — LiFi or Across routing for "move my position to chain X"
+
+**AI CFO surface (Minara parity items):**
+- `kuro portfolio` — cross-chain balance + position table
+- `kuro transfer` / `kuro withdraw` — guarded fund-moving operations
+- `kuro limit-order` — server-side limit orders via DEX-native limit-order programs
+- Fiat onramp — deferred until there's a clean self-hosted path; not depending on MoonPay-style proprietary integrations
 
 ## Compatibility notes
 
-- The `Minara-AI/skills` pattern is what this SKILL follows. kuro is **Solana-only**; Minara covers EVM + perps + fiat onramp. Use both together: Minara for non-Solana stuff, kuro for Solana sniping/arb/autonomous.
+- Skill convention follows the [Minara-AI/skills](https://github.com/Minara-AI/skills) pattern. kuro and Minara are designed to coexist: install both `~/.claude/skills/minara` and `~/.claude/skills/kuro`. Minara wins on multichain spot + perps + fiat today; kuro wins on Solana sniper depth + open source + self-hosting.
 - Tested with: Claude Code (Sonnet 4.6 / Opus 4.7), GLM-4.5, Codex CLI (gpt-5-codex).
 - Subprocess Codex fallback works but is degraded — native OAuth → Responses API is preferred.
 

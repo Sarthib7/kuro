@@ -14,6 +14,12 @@ pub fn err(msg: impl Into<String>) -> (StatusCode, String) {
     (StatusCode::INTERNAL_SERVER_ERROR, msg.into())
 }
 
+/// Liveness probe. Does NOT touch the RPC or wallet — Railway / k8s use this
+/// to verify the process is up without paying for a full status query.
+pub async fn healthz() -> Json<serde_json::Value> {
+    Json(json!({"ok": true}))
+}
+
 pub async fn status(State(s): State<AppState>) -> Result<Json<StatusResp>, (StatusCode, String)> {
     let bal = s
         .rpc

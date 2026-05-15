@@ -1,0 +1,5 @@
+target/
+.git/
+**/*.json
+!Cargo.lock
+!railway.toml

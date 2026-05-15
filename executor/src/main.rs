@@ -63,6 +63,7 @@ async fn main() -> Result<()> {
     };
 
     let app = Router::new()
+        .route("/healthz", get(api::healthz))
         .route("/status", get(api::status))
         .route("/quote", post(api::quote))
         .route("/swap", post(api::swap))
