@@ -44,6 +44,10 @@ _Avoid_: alpha unless source + method known
 Tracked exposure created by trade or imported wallet state.
 _Avoid_: holding when Kuro cannot track entry/exit
 
+**Position Mode**:
+Trading Scope rule that defines whether a Strategy may hold one Position or scale into multiple entries for same market.
+_Avoid_: duplicate handling
+
 **Risk Cap**:
 Hard executor limit on size, daily spend, drawdown, collateral, or venue.
 _Avoid_: guideline, preference
@@ -55,6 +59,10 @@ _Avoid_: user account, custody wallet
 **Sniper**:
 Low-latency strategy for fresh pools and launch events.
 _Avoid_: generic trading bot
+
+**Arbitrage Strategy**:
+Strategy that seeks price mismatch across routes or venues, then emits a fee-aware Trade Intent.
+_Avoid_: guaranteed arb bot, risk-free profit
 
 **Perps Copilot**:
 Perpetual-market research + preview surface.
@@ -76,11 +84,14 @@ _Avoid_: secret signal
 
 - **Copilot** proposes; **Executor** enforces.
 - **Autopilot** runs one or more **Strategies** inside one **Trading Scope**.
+- **Sniper** and **Arbitrage Strategy** are both **Strategies** under **Autopilot**.
+- **Strategy** may recommend action, but **Trading Scope** owns size.
 - **Workflow** may call **Strategy**, notify user, create **Dry Run**, or request **Live Trade**.
 - **Live Trade** must pass **Risk Cap** checks inside **Executor**.
 - **Hot Wallet** belongs to **Executor**, not **Copilot**.
 - **Signal** can influence **Strategy**, but cannot bypass **Risk Cap**.
 - **Position** must reconcile with wallet state after restart or manual user action.
+- **Position Mode** defaults to one open **Position** per market per **Strategy**, unless **Trading Scope** explicitly allows scaling.
 - **Managed Runner** may host **Autopilot**, but **Trading Scope** and **Risk Cap** remain user-owned.
 - **Strategy Pack** configures **Strategy**; it does not promise profit.
 
@@ -95,3 +106,4 @@ _Avoid_: secret signal
 - "AI CFO" is marketing; product term is **Copilot** or **Autopilot**.
 - "Trade" must be split into **Dry Run** vs **Live Trade**.
 - "Monetization" means software/infrastructure revenue, not profit-share or managed trading.
+- "Multiple entries" must be modeled by **Position Mode**, not accidental duplicate buys.
