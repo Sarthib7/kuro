@@ -250,3 +250,16 @@ Use this:
 
 > Kuro is an open-source Solana trading copilot that turns token and wallet research into dry-run trade previews and scoped automation, with local keys and executor-enforced risk caps.
 
+## Monetization
+
+Canonical monetization doc: [monetization.md](monetization.md).
+
+Sell software and infra:
+
+- Pro Local.
+- Hosted Runner.
+- Low-latency infra.
+- Strategy Packs.
+- Team deploys.
+
+Do not sell guaranteed returns, PnL share, pooled funds, or black-box signals.

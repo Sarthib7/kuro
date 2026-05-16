@@ -60,6 +60,18 @@ _Avoid_: generic trading bot
 Perpetual-market research + preview surface.
 _Avoid_: leveraged advisor
 
+**Managed Runner**:
+Hosted Kuro process operated for one user wallet with user-owned scope and caps.
+_Avoid_: managed account, pooled fund
+
+**Strategy Pack**:
+Paid set of strategy templates, tests, defaults, and docs.
+_Avoid_: paid alpha, guaranteed signal
+
+**Pro Data Adapter**:
+Paid integration for faster, deeper, or higher-quota market/onchain data.
+_Avoid_: secret signal
+
 ## Relationships
 
 - **Copilot** proposes; **Executor** enforces.
@@ -69,6 +81,8 @@ _Avoid_: leveraged advisor
 - **Hot Wallet** belongs to **Executor**, not **Copilot**.
 - **Signal** can influence **Strategy**, but cannot bypass **Risk Cap**.
 - **Position** must reconcile with wallet state after restart or manual user action.
+- **Managed Runner** may host **Autopilot**, but **Trading Scope** and **Risk Cap** remain user-owned.
+- **Strategy Pack** configures **Strategy**; it does not promise profit.
 
 ## Example Dialogue
 
@@ -80,4 +94,4 @@ _Avoid_: leveraged advisor
 - "Autonomous" means **Autopilot** with scoped authority, not unlimited AI control.
 - "AI CFO" is marketing; product term is **Copilot** or **Autopilot**.
 - "Trade" must be split into **Dry Run** vs **Live Trade**.
-
+- "Monetization" means software/infrastructure revenue, not profit-share or managed trading.
