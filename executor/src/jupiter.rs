@@ -55,7 +55,13 @@ pub async fn quote(
             ("onlyDirectRoutes", "false"),
         ],
     )?;
-    let v: Value = http.get(url).send().await?.error_for_status()?.json().await?;
+    let v: Value = http
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
     Ok(JupQuote(v))
 }
 

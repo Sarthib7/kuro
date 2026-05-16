@@ -1,5 +1,10 @@
 import "./_bootstrap.js";
-import { analyzeTokenSkill } from "./skills/index.js";
+import {
+  analyzeTokenSkill,
+  phoenixMarketsSkill,
+  phoenixTraderSkill,
+  phoenixOpenPerpSkill,
+} from "./skills/index.js";
 import { makeConnection } from "./data/solana.js";
 import { runAgent } from "./agent.js";
 import { ExecutorClient } from "./data/executor.js";
@@ -17,9 +22,24 @@ function usage(): never {
   kuro autonomous                            hands-off mode: watch → score → snipe → exit
   kuro backtest [--limit=100] [--max-age-hours=72]
                                              historical replay against current policy
+  kuro phoenix-markets [symbol]              read Phoenix perps market metadata
+  kuro phoenix-trader [authority]            read Phoenix trader state
+  kuro phoenix-open <symbol> <side> <quantity> <collateral-usdc> [--dry-run=true]
+                                             build/simulate a Phoenix isolated market order
   kuro positions                             show open + closed positions
   kuro status                                executor wallet + risk-cap status`);
   process.exit(1);
+}
+
+function flagValue(args: string[], name: string): string | undefined {
+  const arg = args.find((a) => a.startsWith(`--${name}=`));
+  return arg ? arg.slice(name.length + 3) : undefined;
+}
+
+function boolFlag(args: string[], name: string, fallback: boolean): boolean {
+  const v = flagValue(args, name);
+  if (v === undefined) return fallback;
+  return v === "1" || v.toLowerCase() === "true";
 }
 
 function makeCtx(): SkillContext {
@@ -117,6 +137,44 @@ async function main() {
   if (cmd === "status") {
     const r = await new ExecutorClient().status();
     console.log(JSON.stringify(r, null, 2));
+    return;
+  }
+
+  if (cmd === "phoenix-markets") {
+    const symbol = rest.find((a) => !a.startsWith("--"));
+    const result = await phoenixMarketsSkill.execute({ symbol }, makeCtx());
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (cmd === "phoenix-trader") {
+    const authority = rest.find((a) => !a.startsWith("--"));
+    const pdaIndex = Number(flagValue(rest, "pda-index") ?? "0");
+    const result = await phoenixTraderSkill.execute(
+      { authority, pda_index: pdaIndex },
+      makeCtx(),
+    );
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (cmd === "phoenix-open") {
+    const positional = rest.filter((a) => !a.startsWith("--"));
+    const [symbol, side, quantityArg, collateralArg] = positional;
+    if (!symbol || !side || !quantityArg || !collateralArg) usage();
+    const input = phoenixOpenPerpSkill.inputSchema.parse({
+      symbol,
+      side,
+      quantity: Number(quantityArg),
+      transfer_amount_usdc: Number(collateralArg),
+      max_price_in_ticks: flagValue(rest, "max-price-in-ticks")
+        ? Number(flagValue(rest, "max-price-in-ticks"))
+        : undefined,
+      pda_index: Number(flagValue(rest, "pda-index") ?? "0"),
+      dry_run: boolFlag(rest, "dry-run", true),
+    });
+    const result = await phoenixOpenPerpSkill.execute(input, makeCtx());
+    console.log(JSON.stringify(result, null, 2));
     return;
   }
 

@@ -6,9 +6,11 @@ use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RiskInner {
     pub day: Option<NaiveDate>,
     pub today_spent_lamports: u64,
+    pub today_perp_collateral_micros: u64,
     pub start_of_day_balance_lamports: u64,
     pub drawdown_locked: bool,
 }
@@ -49,6 +51,7 @@ impl RiskState {
         if inner.day != Some(today) {
             inner.day = Some(today);
             inner.today_spent_lamports = 0;
+            inner.today_perp_collateral_micros = 0;
             inner.drawdown_locked = false;
             inner.start_of_day_balance_lamports = 0;
         }
@@ -61,8 +64,8 @@ impl RiskState {
             g.start_of_day_balance_lamports = balance_lamports;
         }
         if g.start_of_day_balance_lamports > 0 {
-            let threshold = ((g.start_of_day_balance_lamports as f64)
-                * (1.0 - drawdown_pct / 100.0)) as u64;
+            let threshold =
+                ((g.start_of_day_balance_lamports as f64) * (1.0 - drawdown_pct / 100.0)) as u64;
             if balance_lamports < threshold {
                 g.drawdown_locked = true;
             }
@@ -81,10 +84,20 @@ impl RiskState {
         self.persist_locked(&snap)
     }
 
+    pub fn record_perp_collateral(&self, micros: u64) -> Result<()> {
+        let mut g = self.inner.lock();
+        self.ensure_today(&mut g);
+        g.today_perp_collateral_micros = g.today_perp_collateral_micros.saturating_add(micros);
+        let snap = g.clone();
+        drop(g);
+        self.persist_locked(&snap)
+    }
+
     pub fn reset_daily(&self) -> Result<()> {
         let mut g = self.inner.lock();
         g.day = Some(Utc::now().date_naive());
         g.today_spent_lamports = 0;
+        g.today_perp_collateral_micros = 0;
         g.drawdown_locked = false;
         g.start_of_day_balance_lamports = 0;
         let snap = g.clone();

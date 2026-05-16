@@ -35,6 +35,7 @@ export interface KuroConfig {
   gmgnBaseUrl: string;
   jupiterApiKey?: string;
   jupiterBaseUrl?: string;
+  phoenixApiUrl: string;
 
   // --- executor / autonomous ---
   executorUrl: string;
@@ -102,6 +103,7 @@ export function cfg(): KuroConfig {
     gmgnBaseUrl: process.env.GMGN_BASE_URL ?? "https://gmgn.ai",
     jupiterApiKey: str("JUPITER_API_KEY"),
     jupiterBaseUrl: str("JUPITER_BASE_URL"),
+    phoenixApiUrl: process.env.PHOENIX_API_URL ?? "https://perp-api.phoenix.trade",
 
     executorUrl: process.env.KURO_EXECUTOR_URL ?? "http://127.0.0.1:7777",
     autonomousLive: bool("KURO_AUTONOMOUS_LIVE", false),

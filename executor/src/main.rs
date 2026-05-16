@@ -67,6 +67,10 @@ async fn main() -> Result<()> {
         .route("/status", get(api::status))
         .route("/quote", post(api::quote))
         .route("/swap", post(api::swap))
+        .route(
+            "/phoenix/isolated_market_order",
+            post(api::phoenix_isolated_market_order),
+        )
         .route("/risk/reset_daily", post(api::reset_daily))
         .with_state(state);
 
@@ -76,6 +80,7 @@ async fn main() -> Result<()> {
         wallet = %wallet.pubkey(),
         max_trade_sol = cfg.max_trade_sol,
         daily_cap_sol = cfg.daily_cap_sol,
+        phoenix_live_enabled = cfg.phoenix_live_enabled,
         "kuro-executor up"
     );
     let listener = tokio::net::TcpListener::bind(addr).await?;

@@ -8,6 +8,10 @@ export interface ExecutorStatus {
   daily_cap_sol: number;
   drawdown_kill_pct: number;
   drawdown_locked: boolean;
+  today_perp_collateral_usdc?: number;
+  max_perp_collateral_usdc?: number;
+  daily_perp_collateral_usdc?: number;
+  phoenix_live_enabled?: boolean;
 }
 
 export interface ExecutorQuoteResp {
@@ -26,6 +30,28 @@ export interface ExecutorSwapResp {
   in_amount: number;
   out_amount_estimated: number;
   submitted_via: "rpc" | "jito" | "dry_run" | "blocked";
+  risk: ExecutorRiskOutcome;
+}
+
+export interface ExecutorPhoenixInstruction {
+  program_id: string;
+  key_count: number;
+  data_len: number;
+}
+
+export interface ExecutorPhoenixMarketOrderResp {
+  signature: string | null;
+  authority: string;
+  symbol: string;
+  side: "bid" | "ask";
+  quantity: number;
+  transfer_amount_usdc: number;
+  estimated_liquidation_price_usd: number | null;
+  submitted_via: "rpc" | "dry_run" | "blocked";
+  simulation_ok: boolean | null;
+  simulation_error: string | null;
+  simulation_logs: string[] | null;
+  instructions: ExecutorPhoenixInstruction[];
   risk: ExecutorRiskOutcome;
 }
 
@@ -72,5 +98,27 @@ export class ExecutorClient {
     });
     if (!r.ok) throw new Error(`executor /swap failed: ${r.status} ${await r.text()}`);
     return r.json() as Promise<ExecutorSwapResp>;
+  }
+
+  async phoenixIsolatedMarketOrder(req: {
+    symbol: string;
+    side: "bid" | "ask";
+    quantity: number;
+    transfer_amount_usdc: number;
+    max_price_in_ticks?: number;
+    pda_index?: number;
+    dry_run: boolean;
+  }): Promise<ExecutorPhoenixMarketOrderResp> {
+    const r = await fetch(`${this.base}/phoenix/isolated_market_order`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(req),
+    });
+    if (!r.ok) {
+      throw new Error(
+        `executor /phoenix/isolated_market_order failed: ${r.status} ${await r.text()}`,
+      );
+    }
+    return r.json() as Promise<ExecutorPhoenixMarketOrderResp>;
   }
 }

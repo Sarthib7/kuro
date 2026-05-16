@@ -52,4 +52,44 @@ pub struct StatusResp {
     pub daily_cap_sol: f64,
     pub drawdown_kill_pct: f64,
     pub drawdown_locked: bool,
+    pub today_perp_collateral_usdc: f64,
+    pub max_perp_collateral_usdc: f64,
+    pub daily_perp_collateral_usdc: f64,
+    pub phoenix_live_enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PhoenixMarketOrderReq {
+    pub symbol: String,
+    pub side: String,
+    pub quantity: f64,
+    pub transfer_amount_usdc: f64,
+    pub max_price_in_ticks: Option<u64>,
+    pub num_base_lots: Option<u64>,
+    pub pda_index: Option<u32>,
+    pub dry_run: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PhoenixInstructionSummary {
+    pub program_id: String,
+    pub key_count: usize,
+    pub data_len: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PhoenixMarketOrderResp {
+    pub signature: Option<String>,
+    pub authority: String,
+    pub symbol: String,
+    pub side: String,
+    pub quantity: f64,
+    pub transfer_amount_usdc: f64,
+    pub estimated_liquidation_price_usd: Option<f64>,
+    pub submitted_via: String,
+    pub simulation_ok: Option<bool>,
+    pub simulation_error: Option<String>,
+    pub simulation_logs: Option<Vec<String>>,
+    pub instructions: Vec<PhoenixInstructionSummary>,
+    pub risk: RiskOutcome,
 }

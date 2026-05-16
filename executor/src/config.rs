@@ -5,10 +5,15 @@ pub struct Config {
     pub bind_addr: String,
     pub rpc_url: String,
     pub jito_url: String,
+    pub phoenix_api_url: String,
+    pub phoenix_program_id: Option<String>,
+    pub phoenix_live_enabled: bool,
     pub keypair_path: String,
     pub state_path: String,
     pub max_trade_sol: f64,
     pub daily_cap_sol: f64,
+    pub max_perp_collateral_usdc: f64,
+    pub daily_perp_collateral_usdc: f64,
     pub drawdown_kill_pct: f64,
 }
 
@@ -30,6 +35,9 @@ impl Config {
         // otherwise alongside the executor binary in ./executor/. Individual
         // path overrides still win (KURO_KEYPAIR_PATH / KURO_STATE_PATH).
         let data_dir = env::var("KURO_DATA_DIR").unwrap_or_else(|_| "./executor".into());
+        let phoenix_live_enabled = env::var("KURO_PHOENIX_LIVE_ENABLED")
+            .map(|s| s == "1" || s.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
 
         Ok(Self {
             bind_addr,
@@ -37,6 +45,12 @@ impl Config {
                 .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".into()),
             jito_url: env::var("JITO_BLOCK_ENGINE_URL")
                 .unwrap_or_else(|_| "https://mainnet.block-engine.jito.wtf/api/v1/bundles".into()),
+            phoenix_api_url: env::var("PHOENIX_API_URL")
+                .unwrap_or_else(|_| "https://perp-api.phoenix.trade".into()),
+            phoenix_program_id: env::var("KURO_PHOENIX_PROGRAM_ID")
+                .ok()
+                .filter(|s| !s.trim().is_empty()),
+            phoenix_live_enabled,
             keypair_path: env::var("KURO_KEYPAIR_PATH")
                 .unwrap_or_else(|_| format!("{}/keypair.json", data_dir)),
             state_path: env::var("KURO_STATE_PATH")
@@ -49,6 +63,14 @@ impl Config {
                 .ok()
                 .and_then(|s| s.parse().ok())
                 .unwrap_or(0.1),
+            max_perp_collateral_usdc: env::var("KURO_MAX_PERP_COLLATERAL_USDC")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(25.0),
+            daily_perp_collateral_usdc: env::var("KURO_DAILY_PERP_COLLATERAL_USDC")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(100.0),
             drawdown_kill_pct: env::var("KURO_DRAWDOWN_KILL_PCT")
                 .ok()
                 .and_then(|s| s.parse().ok())

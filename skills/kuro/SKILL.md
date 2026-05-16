@@ -1,7 +1,7 @@
 ---
 name: kuro
 version: "0.1.0"
-description: "Solana trading agent for sniping, arbitrage, and autonomous trading. Analyse SPL tokens (pool depth, top holders, mint/freeze authorities, round-trip honeypot sim), snipe new pools on Pump.fun/PumpSwap/Raydium/Meteora via a deterministic Rust executor with Jito bundles, find triangular arbitrage, enrich wallets via Zerion, score signals via GMGN, and run an autonomous loop with per-trade/daily/drawdown risk caps. Use when: (1) Solana mints, tickers ($BONK, $WIF, $PEPE, contract addresses ending in 'pump'), (2) phrases 'snipe', 'arb', 'arbitrage', 'autonomous trading', 'watch new pools', 'rug check', 'honeypot check', (3) Solana DEX names (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter, Orca), (4) wallet enrichment / smart-money / dev wallet analysis on Solana, (5) explicit 'kuro' references."
+description: "Solana trading agent for sniping, arbitrage, Phoenix perps, and autonomous trading. Analyse SPL tokens (pool depth, top holders, mint/freeze authorities, round-trip honeypot sim), snipe new pools on Pump.fun/PumpSwap/Raydium/Meteora via a deterministic Rust executor with Jito bundles, inspect Phoenix perps markets/trader state, build guarded Phoenix isolated market orders, find triangular arbitrage, enrich wallets via Zerion, score signals via GMGN, and run an autonomous loop with per-trade/daily/drawdown risk caps. Use when: (1) Solana mints, tickers ($BONK, $WIF, $PEPE, contract addresses ending in 'pump'), (2) phrases 'snipe', 'perps', 'Phoenix', 'arb', 'arbitrage', 'autonomous trading', 'watch new pools', 'rug check', 'honeypot check', (3) Solana DEX names (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter, Orca, Phoenix, Jito), (4) wallet enrichment / smart-money / dev wallet analysis on Solana, (5) explicit 'kuro' references."
 homepage: https://github.com/Sarthib7/kuro
 metadata: { "openclaw": { "always": false, "primaryEnv": "SOLANA_RPC_URL", "requires": { "bins": ["cargo", "node"], "config": ["skills.entries.kuro.enabled"] }, "emoji": "🐺", "homepage": "https://github.com/Sarthib7/kuro" }, "version": "0.1.0" }
 ---
@@ -28,14 +28,14 @@ On first activation, read `{baseDir}/setup.md` and follow its instructions.
 **USE THIS SKILL** when the user's message mentions:
 
 - **Solana tokens / mints / tickers:** $BONK, $WIF, $PEPE, $-prefixed Solana memes, contract addresses (base58, often ending in `pump`)
-- **Trading actions on Solana:** snipe, snipe a token, buy on Pump.fun, autonomous trading, watch new pools, arb / arbitrage on Jupiter / Raydium, find rug, honeypot check, rug check
-- **Solana DEX / launchpad names:** Pump.fun, PumpSwap, Raydium (AMM v4 / CPMM / CLMM), Meteora (DLMM / Dynamic), Jupiter, Orca, Jito (bundles)
+- **Trading actions on Solana:** snipe, snipe a token, buy on Pump.fun, autonomous trading, watch new pools, Phoenix perps, arb / arbitrage on Jupiter / Raydium, find rug, honeypot check, rug check
+- **Solana DEX / launchpad names:** Pump.fun, PumpSwap, Raydium (AMM v4 / CPMM / CLMM), Meteora (DLMM / Dynamic), Jupiter, Orca, Phoenix, Jito (bundles)
 - **Wallet / signal enrichment in Solana context:** check this wallet (with Solana mint context), smart-money signals, dev wallet history, top holders, alpha wallet
 - **Explicit:** kuro
 
 **Routing gate:** requires a Solana-specific signal (mint / chain / DEX). Do NOT activate for general blockchain education ("what is Pump.fun?", "explain Jupiter routing") — only for action requests.
 
-**Disambiguation vs Minara:** if the user asks for an EVM swap, perps, Hyperliquid, or fiat onramp — route to Minara, not kuro. kuro is Solana-only and read+sniper+arb-focused; it does not do perps or fiat.
+**Disambiguation vs Minara:** if the user asks for an EVM swap, Hyperliquid, or fiat onramp — route to Minara, not kuro. kuro is Solana-only, but it does support Phoenix perps on Solana.
 
 ## Prerequisites
 
@@ -59,7 +59,7 @@ On first activation, read `{baseDir}/setup.md` and follow its instructions.
 
 ### Analysis → Trade boundary (CRITICAL — instant safety failure if violated)
 
-Analysis (`analyze`, `watch`, `positions`, `status`, `enrich_wallet`, `gmgn_signal`, `find_arb`) is read-only. **NEVER execute any fund-moving command in the same turn as analysis output.**
+Analysis (`analyze`, `watch`, `positions`, `status`, `enrich_wallet`, `gmgn_signal`, `find_arb`, `phoenix-markets`, `phoenix-trader`) is read-only. **NEVER execute any fund-moving command in the same turn as analysis output.**
 
 1. Complete the analysis, present results.
 2. If the user expressed snipe / trade intent in the same message (e.g. "analyze and snipe if safe"), append a brief suggestion with mint, amount, and slippage — but do NOT execute. Wait for explicit confirmation.
@@ -75,7 +75,7 @@ Analysis (`analyze`, `watch`, `positions`, `status`, `enrich_wallet`, `gmgn_sign
 ## Transaction confirmation (CRITICAL — MUST follow exactly)
 
 **Fund-moving commands** (MUST confirm before executing):
-`snipe`, `execute_arb`, anything that calls the Rust executor's `POST /swap` with `dry_run=false`.
+`snipe`, `execute_arb`, `phoenix-open --dry-run=false`, anything that calls the Rust executor's `POST /swap` or `POST /phoenix/isolated_market_order` with `dry_run=false`.
 
 ### Confirmation flow
 
@@ -97,6 +97,9 @@ The Rust executor enforces per-trade and daily SOL caps independently — if the
 | Execute arbitrage | `kuro execute-arb [--dry-run]` | **fund-moving** | [references/arb.md](references/arb.md) |
 | Enrich a wallet | `kuro enrich-wallet <address>` | read-only | [references/enrich.md](references/enrich.md) |
 | GMGN signal for a mint | `kuro gmgn-signal <mint>` | read-only | [references/enrich.md](references/enrich.md) |
+| Phoenix markets | `kuro phoenix-markets [symbol]` | read-only | [references/phoenix.md](references/phoenix.md) |
+| Phoenix trader state | `kuro phoenix-trader [authority]` | read-only | [references/phoenix.md](references/phoenix.md) |
+| Phoenix isolated market order | `kuro phoenix-open <symbol> <side> <quantity> <collateral-usdc> [--dry-run=true]` | **fund-moving when dry-run=false** | [references/phoenix.md](references/phoenix.md) |
 | Show open / closed positions | `kuro positions` | read-only | [references/positions.md](references/positions.md) |
 | Executor + risk status | `kuro status` | read-only | [references/positions.md](references/positions.md) |
 | Start autonomous loop | `kuro autonomous` | **fund-moving if `KURO_AUTONOMOUS_LIVE=true`** | [references/autonomous.md](references/autonomous.md) |
@@ -111,6 +114,6 @@ Every command should return JSON on stdout for machine parsing, and human-readab
 
 1. **Skill-side gates** (this doc) — refuse snipe if analysis flags fail, mandatory confirmation flow.
 2. **Policy gates** (`agent/src/autonomous/policy.ts`) — same flags inspected before any swap call.
-3. **Executor gates** (Rust) — independent per-trade SOL cap (`KURO_MAX_TRADE_SOL`), daily SOL cap (`KURO_DAILY_CAP_SOL`), drawdown kill-switch (`KURO_DRAWDOWN_KILL_PCT`). These cannot be bypassed by any prompt.
+3. **Executor gates** (Rust) — independent per-trade SOL cap (`KURO_MAX_TRADE_SOL`), daily SOL cap (`KURO_DAILY_CAP_SOL`), Phoenix perps collateral caps (`KURO_MAX_PERP_COLLATERAL_USDC`, `KURO_DAILY_PERP_COLLATERAL_USDC`), Phoenix live switch (`KURO_PHOENIX_LIVE_ENABLED`), and drawdown kill-switch (`KURO_DRAWDOWN_KILL_PCT`). These cannot be bypassed by any prompt.
 
 If a layer disagrees with another, the **strictest answer wins**.
