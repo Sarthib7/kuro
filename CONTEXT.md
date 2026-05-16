@@ -72,6 +72,10 @@ _Avoid_: generic trading bot
 Strategy that seeks price mismatch across routes or venues, then emits a fee-aware Trade Intent.
 _Avoid_: guaranteed arb bot, risk-free profit
 
+**Arbitrage Scanner**:
+Dry Run first route search that estimates edge without claiming executable profit.
+_Avoid_: profit engine
+
 **Perps Copilot**:
 Perpetual-market research + preview surface.
 _Avoid_: leveraged advisor
@@ -93,6 +97,7 @@ _Avoid_: secret signal
 - **Copilot** proposes; **Executor** enforces.
 - **Autopilot** runs one or more **Strategies** inside one **Trading Scope**.
 - **Sniper** and **Arbitrage Strategy** are both **Strategies** under **Autopilot**.
+- **Arbitrage Scanner** may use aggregated quotes; production **Arbitrage Strategy** needs direct venue adapters.
 - **Strategy** may recommend action, but **Trading Scope** owns size.
 - **Workflow** may call **Strategy**, notify user, create **Dry Run**, or request **Live Trade**.
 - **Live Trade** must pass **Risk Cap** checks inside **Executor**.
@@ -103,6 +108,7 @@ _Avoid_: secret signal
 - **Position Mode** defaults to one open **Position** per market per **Strategy**, unless **Trading Scope** explicitly allows scaling.
 - **Managed Runner** may host **Autopilot**, but **Trading Scope** and **Risk Cap** remain user-owned.
 - **Strategy Pack** configures **Strategy**; it does not promise profit.
+- **Strategy Pack** may include conservative defaults, but **Live Trade** requires activated **Trading Scope**.
 
 ## Example Dialogue
 
