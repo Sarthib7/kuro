@@ -1,5 +1,5 @@
 # --- builder ---
-FROM rust:1.85-slim-bookworm AS builder
+FROM rust:1.88-slim-bookworm AS builder
 
 # System deps required by solana-sdk transitive crates: openssl-sys (libssl-dev,
 # pkg-config), libudev-sys (libudev-dev), some protobuf consumers
