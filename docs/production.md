@@ -1,46 +1,51 @@
 # Production Runbook
 
-This is the operational path for running kuro as a hosted agent. The default
-posture is dry-run and analysis-first; live trading requires explicit env
-changes plus funded wallets.
+Hosted Kuro path. Default = dry-run + analysis-first. Live trading needs explicit env change + funded hot wallet.
 
-## Production status
+## Status
 
-kuro is ready for hosted dry-run, read-only analysis, market watching, backtests,
-and Phoenix transaction simulation. It is not ready for fully unattended live
-trading until the launch gates below are complete.
+Ready:
+
+- Hosted dry-run.
+- Read-only analysis.
+- Market watching.
+- Backtests.
+- Phoenix tx simulation.
+
+Not ready:
+
+- Fully unattended live trading until gates pass.
 
 ## Services
 
-Run kuro as two separate services:
+Run two services:
 
-1. `kuro-executor`: Rust service that owns the hot wallet, signs transactions,
-   enforces caps, and exposes private HTTP endpoints.
-2. `kuro-autonomous`: Node worker that watches pools, analyzes candidates, and
-   calls the executor.
+1. `kuro-executor`: Rust service. Owns hot wallet. Signs txs. Enforces caps. Private HTTP only.
+2. `kuro-autonomous`: Node worker. Watches pools. Analyzes candidates. Calls Executor.
 
-Do not expose the executor publicly. It should only be reachable by the agent
-over private service networking.
+Do not expose Executor publicly. Private service network only.
 
-## Railway setup
+## Railway
 
-Create one Railway project with two services.
+One Railway project. Two services.
 
-### kuro-executor
+### `kuro-executor`
 
-Root directory: `executor/`
+Root: `executor/`
 
-Required volume:
+Volume:
 
-- Mount path: `/data`
-- Size: at least 1 GB
-- Holds `keypair.json` and `state.json`
+- Mount: `/data`
+- Size: >= 1 GB
+- Holds: `keypair.json`, `state.json`
 
-Required env:
+Env:
 
 ```bash
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-KURO_BIND=0.0.0.0:7777
+PORT=8080
+KURO_BIND=0.0.0.0:8080
+KURO_EXECUTOR_API_KEY=strong-random-secret
 KURO_DATA_DIR=/data
 KURO_MAX_TRADE_SOL=0.02
 KURO_DAILY_CAP_SOL=0.1
@@ -51,27 +56,28 @@ KURO_PHOENIX_LIVE_ENABLED=false
 KURO_PHOENIX_PROGRAM_ID=
 ```
 
-Build config:
+Build:
 
-- Builder: Dockerfile
-- Dockerfile path: `Dockerfile`
-- Health check path: `/healthz`
+- Builder: Dockerfile.
+- Dockerfile path: `Dockerfile`.
+- Health path: `/healthz`.
 
-### kuro-autonomous
+### `kuro-autonomous`
 
-Root directory: `agent/`
+Root: `agent/`
 
-Required volume:
+Volume:
 
-- Mount path: `/data`
-- Size: at least 1 GB
-- Holds `positions.json`
+- Mount: `/data`
+- Size: >= 1 GB
+- Holds: `positions.json`
 
-Required env:
+Env:
 
 ```bash
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:7777
+KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:8080
+KURO_EXECUTOR_API_KEY=same-secret-as-executor
 KURO_POSITIONS_PATH=/data/positions.json
 KURO_BRAIN=glm
 GLM_API_KEY=YOUR_KEY
@@ -82,7 +88,7 @@ KURO_USE_JITO=true
 KURO_JITO_TIP_SOL=0.0002
 ```
 
-Optional env:
+Optional:
 
 ```bash
 BIRDEYE_API_KEY=
@@ -92,28 +98,28 @@ JUPITER_API_KEY=
 PHOENIX_API_URL=https://perp-api.phoenix.trade
 ```
 
-Start command:
+Start:
 
 ```bash
 npx tsx src/cli.ts autonomous
 ```
 
-## Local dry-run onboarding
+## Local Dry-Run
 
-1. Copy env:
+1. Env:
 
    ```bash
    cp .env.example .env
    ```
 
-2. Start executor:
+2. Executor:
 
    ```bash
    cd executor
    cargo run --release
    ```
 
-3. In another shell, install and run agent commands:
+3. Agent:
 
    ```bash
    cd agent
@@ -123,44 +129,46 @@ npx tsx src/cli.ts autonomous
    npm run dev -- phoenix-open SOL long 0.1 10 --dry-run=true
    ```
 
-4. Keep `KURO_AUTONOMOUS_LIVE=false` until backtests and dry-run logs are clean.
+4. Keep live off:
 
-## Live trading gates
+   ```bash
+   KURO_AUTONOMOUS_LIVE=false
+   ```
 
-Do not set `KURO_AUTONOMOUS_LIVE=true` until all of these are true:
+## Live Gates
 
-- Executor is on a private network only.
-- Executor volume is backed up or intentionally disposable.
-- Hot wallet is funded with only the maximum amount you are willing to lose.
+Do not set `KURO_AUTONOMOUS_LIVE=true` until:
+
+- Executor private network only.
+- Executor volume backed up or intentionally disposable.
+- Hot wallet funded only with max acceptable loss.
 - `npm run typecheck` passes in `agent/`.
 - `cargo test` passes in `executor/`.
-- Backtest report shows positive expectancy for the current policy.
-- At least 24 hours of dry-run autonomous logs have no unexpected trade intents.
-- RPC provider has enough quota for watcher, analysis, simulation, and sends.
-- Alerting exists for crashes, drawdown lock, and failed transaction bursts.
+- Backtest shows positive expectancy for current policy.
+- 24h dry-run autonomous logs show no unexpected trade intents.
+- RPC quota covers watcher, analysis, simulation, sends.
+- Alerts exist for crash, drawdown lock, failed tx bursts.
 
-For Phoenix live perps, also require:
+Phoenix live perps also need:
 
-- Jurisdiction and private beta access are valid.
-- `KURO_PHOENIX_PROGRAM_ID` is pinned from a trusted exchange snapshot.
+- Jurisdiction + private beta access valid.
+- `KURO_PHOENIX_PROGRAM_ID` pinned from trusted exchange snapshot.
 - `KURO_PHOENIX_LIVE_ENABLED=true`.
-- Per-order and daily USDC collateral caps are deliberately sized.
+- Per-order + daily USDC collateral caps sized deliberately.
 
-## Remaining production work
+## P0 Before Unattended Live
 
-P0 before live unattended trading:
+- SQLite for positions/trades/risk.
+- Private executor networking or an authenticated gateway; bearer key auth is only the baseline.
+- Health checks for both services.
+- Structured logs + alerts.
+- Backtest acceptance threshold + persisted reports.
+- Integration tests for Executor dry-run routes.
 
-- Replace JSON position/risk state with SQLite and transaction history.
-- Add auth or hard private networking enforcement around executor endpoints.
-- Add deployment health checks for both services.
-- Add structured logs and alerting.
-- Add a backtest acceptance threshold and persist reports.
-- Add integration tests for executor dry-run routes.
+## P1 Before Public Beta
 
-P1 before public beta:
-
-- Add web onboarding and docs site.
-- Add operator dashboard for wallet, caps, dry-run intents, and positions.
-- Add kill-switch controls that do not require redeploy.
-- Add multi-RPC send race and confirmation tracking.
-- Add position reconciliation after restarts.
+- Web onboarding + docs site.
+- Operator dashboard: wallet, caps, dry-run intents, positions.
+- Kill switch without redeploy.
+- Multi-RPC send race + confirmation tracking.
+- Position reconciliation after restart.

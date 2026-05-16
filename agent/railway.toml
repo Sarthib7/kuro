@@ -5,7 +5,8 @@
 #
 # Required env vars to set in the Railway service dashboard:
 #   SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
-#   KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:7777
+#   KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:8080
+#   KURO_EXECUTOR_API_KEY=<same secret as executor>
 #   KURO_POSITIONS_PATH=/data/positions.json
 #   KURO_BRAIN=glm                  # or anthropic / codex / openai
 #   GLM_API_KEY=...                 # (for the brain you chose)

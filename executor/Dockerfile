@@ -28,5 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=builder /build/target/release/kuro-executor /usr/local/bin/kuro-executor
 
-EXPOSE 7777
+ENV PORT=8080
+EXPOSE 8080
 CMD ["kuro-executor"]

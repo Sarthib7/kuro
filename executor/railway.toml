@@ -6,7 +6,9 @@
 #
 # Required env vars in the Railway service dashboard:
 #   SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
-#   KURO_BIND=0.0.0.0:7777
+#   PORT=8080
+#   KURO_BIND=0.0.0.0:8080
+#   KURO_EXECUTOR_API_KEY=<strong random secret>
 #   KURO_DATA_DIR=/data
 #   KURO_MAX_TRADE_SOL=0.02
 #   KURO_DAILY_CAP_SOL=0.1

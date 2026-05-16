@@ -128,7 +128,9 @@ kuro is built to run as two services on [Railway](https://railway.app) — `kuro
    - Set env vars:
      ```
      SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_KEY
-     KURO_BIND=0.0.0.0:7777
+     PORT=8080
+     KURO_BIND=0.0.0.0:8080
+     KURO_EXECUTOR_API_KEY=strong-random-secret
      KURO_DATA_DIR=/data
      KURO_MAX_TRADE_SOL=0.02
      KURO_DAILY_CAP_SOL=0.1
@@ -141,7 +143,8 @@ kuro is built to run as two services on [Railway](https://railway.app) — `kuro
    - Set env vars:
      ```
      SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_KEY
-     KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:7777
+     KURO_EXECUTOR_URL=http://kuro-executor.railway.internal:8080
+     KURO_EXECUTOR_API_KEY=same-secret-as-executor
      KURO_POSITIONS_PATH=/data/positions.json
      KURO_BRAIN=glm
      GLM_API_KEY=your_glm_key

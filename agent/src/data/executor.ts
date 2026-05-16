@@ -57,12 +57,22 @@ export interface ExecutorPhoenixMarketOrderResp {
 
 export class ExecutorClient {
   private base: string;
-  constructor(base?: string) {
+  private apiKey?: string;
+
+  constructor(base?: string, apiKey?: string) {
     this.base = base ?? process.env.KURO_EXECUTOR_URL ?? DEFAULT_BASE;
+    this.apiKey = apiKey ?? process.env.KURO_EXECUTOR_API_KEY;
+  }
+
+  private headers(json = false): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (json) headers["content-type"] = "application/json";
+    if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;
+    return headers;
   }
 
   async status(): Promise<ExecutorStatus> {
-    const r = await fetch(`${this.base}/status`);
+    const r = await fetch(`${this.base}/status`, { headers: this.headers() });
     if (!r.ok) throw new Error(`executor /status failed: ${r.status} ${await r.text()}`);
     return r.json() as Promise<ExecutorStatus>;
   }
@@ -75,7 +85,7 @@ export class ExecutorClient {
   }): Promise<ExecutorQuoteResp> {
     const r = await fetch(`${this.base}/quote`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: this.headers(true),
       body: JSON.stringify(req),
     });
     if (!r.ok) throw new Error(`executor /quote failed: ${r.status} ${await r.text()}`);
@@ -93,7 +103,7 @@ export class ExecutorClient {
   }): Promise<ExecutorSwapResp> {
     const r = await fetch(`${this.base}/swap`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: this.headers(true),
       body: JSON.stringify(req),
     });
     if (!r.ok) throw new Error(`executor /swap failed: ${r.status} ${await r.text()}`);
@@ -111,7 +121,7 @@ export class ExecutorClient {
   }): Promise<ExecutorPhoenixMarketOrderResp> {
     const r = await fetch(`${this.base}/phoenix/isolated_market_order`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: this.headers(true),
       body: JSON.stringify(req),
     });
     if (!r.ok) {

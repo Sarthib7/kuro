@@ -8,6 +8,7 @@ pub struct Config {
     pub phoenix_api_url: String,
     pub phoenix_program_id: Option<String>,
     pub phoenix_live_enabled: bool,
+    pub executor_api_key: Option<String>,
     pub keypair_path: String,
     pub state_path: String,
     pub max_trade_sol: f64,
@@ -20,12 +21,13 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Result<Self> {
         // In container envs (Railway, fly.io, etc.) we bind to 0.0.0.0; locally
-        // we default to loopback. The detection heuristic: KURO_BIND wins,
-        // otherwise if PORT or RAILWAY_ENVIRONMENT is set bind to 0.0.0.0:7777,
-        // otherwise 127.0.0.1:7777.
+        // we default to loopback. KURO_BIND wins, then $PORT, then a Railway
+        // fallback, otherwise local loopback.
         let bind_addr = env::var("KURO_BIND").unwrap_or_else(|_| {
-            if env::var("RAILWAY_ENVIRONMENT").is_ok() || env::var("PORT").is_ok() {
-                "0.0.0.0:7777".into()
+            if let Ok(port) = env::var("PORT") {
+                format!("0.0.0.0:{}", port.trim())
+            } else if env::var("RAILWAY_ENVIRONMENT").is_ok() {
+                "0.0.0.0:8080".into()
             } else {
                 "127.0.0.1:7777".into()
             }
@@ -51,6 +53,10 @@ impl Config {
                 .ok()
                 .filter(|s| !s.trim().is_empty()),
             phoenix_live_enabled,
+            executor_api_key: env::var("KURO_EXECUTOR_API_KEY")
+                .ok()
+                .map(|s| s.trim().to_owned())
+                .filter(|s| !s.is_empty()),
             keypair_path: env::var("KURO_KEYPAIR_PATH")
                 .unwrap_or_else(|_| format!("{}/keypair.json", data_dir)),
             state_path: env::var("KURO_STATE_PATH")

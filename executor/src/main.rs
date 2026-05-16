@@ -1,5 +1,10 @@
 use anyhow::Result;
 use axum::{
+    body::Body,
+    extract::State,
+    http::{header::AUTHORIZATION, Request, StatusCode},
+    middleware::{from_fn_with_state, Next},
+    response::Response,
     routing::{get, post},
     Router,
 };
@@ -25,6 +30,34 @@ pub struct AppState {
     pub http: reqwest::Client,
     pub rpc: Arc<RpcClient>,
     pub blockhash: blockhash::BlockhashCache,
+}
+
+async fn require_executor_auth(
+    State(cfg): State<Arc<config::Config>>,
+    req: Request<Body>,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    let Some(expected) = cfg.executor_api_key.as_deref() else {
+        return Ok(next.run(req).await);
+    };
+
+    let bearer_ok = req
+        .headers()
+        .get(AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .is_some_and(|token| token == expected);
+    let header_ok = req
+        .headers()
+        .get("x-kuro-executor-key")
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|token| token == expected);
+
+    if bearer_ok || header_ok {
+        Ok(next.run(req).await)
+    } else {
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 #[tokio::main]
@@ -62,8 +95,7 @@ async fn main() -> Result<()> {
         blockhash,
     };
 
-    let app = Router::new()
-        .route("/healthz", get(api::healthz))
+    let protected_routes = Router::new()
         .route("/status", get(api::status))
         .route("/quote", post(api::quote))
         .route("/swap", post(api::swap))
@@ -72,6 +104,11 @@ async fn main() -> Result<()> {
             post(api::phoenix_isolated_market_order),
         )
         .route("/risk/reset_daily", post(api::reset_daily))
+        .route_layer(from_fn_with_state(cfg.clone(), require_executor_auth));
+
+    let app = Router::new()
+        .route("/healthz", get(api::healthz))
+        .merge(protected_routes)
         .with_state(state);
 
     let addr: SocketAddr = cfg.bind_addr.parse()?;
