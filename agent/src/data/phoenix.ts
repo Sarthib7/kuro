@@ -45,6 +45,22 @@ export interface PhoenixMarket {
   maxFundingRatePerIntervalPercentage?: number;
 }
 
+export interface PhoenixCandle {
+  close: number;
+  high: number;
+  low: number;
+  open: number;
+  time: number;
+  externalSource?: string | null;
+  markClose?: number;
+  markHigh?: number;
+  markLow?: number;
+  markOpen?: number;
+  tradeCount?: number | null;
+  volume?: number | null;
+  volumeQuote?: number | null;
+}
+
 export interface PhoenixPosition {
   symbol: string;
   positionSize: string;
@@ -104,6 +120,27 @@ export async function getPhoenixMarket(symbol: string): Promise<PhoenixMarket> {
   return phoenixGet<PhoenixMarket>(
     `/exchange/market/${encodeURIComponent(normalizePhoenixSymbol(symbol))}`,
   );
+}
+
+export async function getPhoenixCandles(input: {
+  symbol: string;
+  timeframe: string;
+  limit?: number;
+  startTime?: number;
+  endTime?: number;
+  enableExternalSource?: boolean;
+}): Promise<PhoenixCandle[]> {
+  const qs = new URLSearchParams({
+    symbol: normalizePhoenixSymbol(input.symbol),
+    timeframe: input.timeframe,
+  });
+  if (input.limit !== undefined) qs.set("limit", String(input.limit));
+  if (input.startTime !== undefined) qs.set("startTime", String(input.startTime));
+  if (input.endTime !== undefined) qs.set("endTime", String(input.endTime));
+  if (input.enableExternalSource !== undefined) {
+    qs.set("enableExternalSource", String(input.enableExternalSource));
+  }
+  return phoenixGet<PhoenixCandle[]>(`/candles?${qs.toString()}`);
 }
 
 export async function getPhoenixTraderState(

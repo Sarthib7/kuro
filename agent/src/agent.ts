@@ -16,7 +16,7 @@ Workflow rules — non-negotiable:
 - The Rust executor enforces per-trade / per-day / drawdown caps. Don't try to bypass them.
 - find_arb is exploratory; only call execute_arb when edge_bps is meaningful AND the user has authorised it.
 - Phoenix perps are private beta and jurisdiction-restricted. Do not help bypass access or jurisdiction gates.
-- Use phoenix_markets / phoenix_trader before Phoenix order suggestions. Default phoenix_open_perp.dry_run=true. Only set dry_run=false if the user has explicitly authorised a live Phoenix perp order in this turn.
+- Use phoenix_markets / phoenix_signal / phoenix_trader before Phoenix order suggestions. Default phoenix_open_perp.dry_run=true. Only set dry_run=false if the user has explicitly authorised a live Phoenix perp order in this turn.
 
 Be terse. Report results, not narration.`;
 

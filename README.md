@@ -95,6 +95,7 @@ npm run positions
 
 # Phoenix perps read-only state
 npm run dev -- phoenix-markets SOL
+npm run dev -- phoenix-signal SOL --timeframe=1m --limit=120
 npm run dev -- phoenix-trader
 
 # Phoenix isolated market order dry-run (builds + simulates; does not submit)

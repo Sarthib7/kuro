@@ -3,6 +3,7 @@ import {
   analyzeTokenSkill,
   phoenixMarketsSkill,
   phoenixTraderSkill,
+  phoenixSignalSkill,
   phoenixOpenPerpSkill,
 } from "./skills/index.js";
 import { makeConnection } from "./data/solana.js";
@@ -23,6 +24,8 @@ function usage(): never {
   kuro backtest [--limit=100] [--max-age-hours=72]
                                              historical replay against current policy
   kuro phoenix-markets [symbol]              read Phoenix perps market metadata
+  kuro phoenix-signal <symbol> [--timeframe=1m] [--limit=120]
+                                             read Phoenix candles + basic perp signal
   kuro phoenix-trader [authority]            read Phoenix trader state
   kuro phoenix-open <symbol> <side> <quantity> <collateral-usdc> [--dry-run=true]
                                              build/simulate a Phoenix isolated market order
@@ -143,6 +146,22 @@ async function main() {
   if (cmd === "phoenix-markets") {
     const symbol = rest.find((a) => !a.startsWith("--"));
     const result = await phoenixMarketsSkill.execute({ symbol }, makeCtx());
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (cmd === "phoenix-signal") {
+    const symbol = rest.find((a) => !a.startsWith("--"));
+    if (!symbol) usage();
+    const result = await phoenixSignalSkill.execute(
+      {
+        symbol,
+        timeframe: flagValue(rest, "timeframe") ?? "1m",
+        limit: Number(flagValue(rest, "limit") ?? "120"),
+        enable_external_source: boolFlag(rest, "external", false),
+      },
+      makeCtx(),
+    );
     console.log(JSON.stringify(result, null, 2));
     return;
   }
