@@ -57,6 +57,7 @@ Both modes can run at once — autonomous trading on a server, interactive analy
 | 2.5 — Watcher | done | `kuro watch` streams Pump.fun / PumpSwap / Raydium / Meteora new-pool events |
 | 3 — Arbitrage | done (sketch) | SOL → mint → USDC → SOL triangle scan via Jupiter; sequential execution |
 | Autonomy | done | `kuro autonomous` ties watcher + analyze + snipe + position monitor (TP/SL/max-hold) |
+| Phoenix perps | alpha | read markets/trader state; build + simulate guarded isolated market orders through the executor |
 | Multi-brain | done | GLM (default), Anthropic, Codex (OAuth), OpenAI-compat |
 | Persistence | next | SQLite in executor for positions/trades/risk |
 | Geyser | next | Replace WS `logsSubscribe` with Yellowstone gRPC for sub-100ms detection |
@@ -91,7 +92,19 @@ npm run autonomous
 
 # show open + closed positions
 npm run positions
+
+# Phoenix perps read-only state
+npm run dev -- phoenix-markets SOL
+npm run dev -- phoenix-trader
+
+# Phoenix isolated market order dry-run (builds + simulates; does not submit)
+npm run dev -- phoenix-open SOL long 0.1 10 --dry-run=true
 ```
+
+## Operator docs and landing page
+
+- Production runbook: [`docs/production.md`](docs/production.md)
+- Static landing page: [`site/index.html`](site/index.html)
 
 ### Install as a Claude Code skill
 
@@ -179,6 +192,7 @@ All optional; `analyze_token` degrades gracefully when a key is missing.
 | DexScreener | free | Default for price / liquidity / market cap / 24h volume |
 | Birdeye | paid | Optional. Adds total holder count; takes priority over DexScreener if `BIRDEYE_API_KEY` set |
 | Helius | paid | Webhooks + Yellowstone Geyser gRPC for sub-100ms new-pool detection (planned) |
+| Phoenix | private beta | Solana perps markets, trader state, and isolated market-order transaction builders |
 | Zerion | free tier | Cross-chain wallet enrichment — portfolio, Solana positions, recent txns |
 | GMGN | public + paid | Smart-money / Pump.fun signals — bundle share, creator hold %, alpha-wallet buys |
 
@@ -188,6 +202,9 @@ All optional; `analyze_token` degrades gracefully when a key is missing.
 KURO_MAX_TRADE_SOL=0.1           # per-trade ceiling — executor rejects above this
 KURO_DAILY_CAP_SOL=1.0           # cumulative daily spend — executor rejects above this
 KURO_DRAWDOWN_KILL_PCT=20.0      # if balance drops by this % from start-of-day, all trades blocked
+KURO_MAX_PERP_COLLATERAL_USDC=25 # per Phoenix isolated order collateral cap
+KURO_DAILY_PERP_COLLATERAL_USDC=100
+KURO_PHOENIX_LIVE_ENABLED=false  # live perps stay blocked unless explicitly enabled
 ```
 
 These live in the executor's state (`executor/state.json`) and survive restarts. The LLM cannot bypass them, even if its system prompt is jailbroken — the rejection happens before the swap is built.
