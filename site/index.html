@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="kuro is an open, self-hosted Solana trading agent for token analysis, dry-run automation, guarded execution, and Phoenix perps simulation."
+    />
+    <title>kuro | Self-hosted Solana trading agent</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="kuro home">kuro</a>
+      <nav>
+        <a href="#onboard">Onboard</a>
+        <a href="#operate">Operate</a>
+        <a href="#readiness">Readiness</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <canvas id="market-scene" aria-hidden="true"></canvas>
+        <div class="hero-copy">
+          <p class="eyebrow">Open, self-hosted, Solana-first</p>
+          <h1 id="hero-title">kuro</h1>
+          <p class="lede">
+            A personal AI CFO that analyzes mints, watches launches, simulates
+            strategies, and routes guarded execution through your own Rust
+            wallet service.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="../docs/production.md">Production runbook</a>
+            <a class="button secondary" href="../README.md">Read the docs</a>
+          </div>
+        </div>
+        <div class="hero-status" aria-label="Current product status">
+          <span>Dry-run ready</span>
+          <span>Live gated</span>
+          <span>Phoenix simulation</span>
+        </div>
+      </section>
+
+      <section id="onboard" class="band">
+        <div class="section-heading">
+          <p class="eyebrow">Onboarding</p>
+          <h2>Start with visibility, then unlock execution.</h2>
+        </div>
+        <div class="steps" aria-label="Onboarding steps">
+          <article>
+            <span class="step-index">01</span>
+            <h3>Run locally</h3>
+            <p>Start the executor, install the agent, and use read-only token and Phoenix market commands.</p>
+            <code>npm run dev -- phoenix-markets SOL</code>
+          </article>
+          <article>
+            <span class="step-index">02</span>
+            <h3>Dry-run automation</h3>
+            <p>Let the watcher and policy produce decisions without submitting transactions.</p>
+            <code>KURO_AUTONOMOUS_LIVE=false</code>
+          </article>
+          <article>
+            <span class="step-index">03</span>
+            <h3>Host privately</h3>
+            <p>Deploy executor and agent as separate services, with the executor reachable only over private networking.</p>
+            <code>KURO_EXECUTOR_URL=http://kuro-executor.internal:7777</code>
+          </article>
+          <article>
+            <span class="step-index">04</span>
+            <h3>Flip live deliberately</h3>
+            <p>Fund a capped hot wallet, pin live flags, and keep dry-run evidence before enabling any live path.</p>
+            <code>KURO_MAX_TRADE_SOL=0.02</code>
+          </article>
+        </div>
+      </section>
+
+      <section id="operate" class="band contrast">
+        <div class="section-heading">
+          <p class="eyebrow">Operating model</p>
+          <h2>Two services, one authority boundary.</h2>
+        </div>
+        <div class="ops-grid">
+          <article>
+            <h3>Executor</h3>
+            <p>Rust service that owns the hot wallet, signs transactions, simulates Phoenix orders, and rejects requests that exceed caps.</p>
+          </article>
+          <article>
+            <h3>Agent</h3>
+            <p>Node worker that watches markets, runs analysis, calls LLM tools, and forwards allowed intents to the executor.</p>
+          </article>
+          <article>
+            <h3>State</h3>
+            <p>Volumes keep wallet, risk state, and positions stable across deploys while the next persistence layer is built.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="readiness" class="band">
+        <div class="section-heading">
+          <p class="eyebrow">Production readiness</p>
+          <h2>Good for hosted dry-runs. Not yet for unattended live capital.</h2>
+        </div>
+        <div class="readiness-grid">
+          <article>
+            <h3>Ready now</h3>
+            <ul>
+              <li>Token analysis and pool watching</li>
+              <li>Backtest harness</li>
+              <li>Guarded spot swap executor</li>
+              <li>Phoenix market and trader reads</li>
+              <li>Phoenix dry-run transaction simulation</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Before live</h3>
+            <ul>
+              <li>Private executor networking</li>
+              <li>SQLite persistence and reconciliation</li>
+              <li>Structured logs and alerts</li>
+              <li>24h clean dry-run window</li>
+              <li>Backtest acceptance threshold</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>MIT licensed</span>
+      <a href="https://github.com/Sarthib7/kuro">GitHub</a>
+    </footer>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
