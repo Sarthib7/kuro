@@ -25,6 +25,9 @@ Run two services:
 
 Do not expose Executor publicly. Private service network only.
 
+If public URL is required, set `KURO_EXECUTOR_API_KEY` before funding wallet.
+Without it, anyone can call `/swap`.
+
 ## Railway
 
 One Railway project. Two services.
@@ -43,6 +46,7 @@ Env:
 
 ```bash
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+JUPITER_SWAP_API_URL=https://lite-api.jup.ag/swap/v1
 PORT=8080
 KURO_BIND=0.0.0.0:8080
 KURO_EXECUTOR_API_KEY=strong-random-secret

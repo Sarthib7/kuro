@@ -233,6 +233,7 @@ pub async fn quote(
 ) -> Result<Json<QuoteResp>, (StatusCode, String)> {
     let q = jupiter::quote(
         &s.http,
+        &s.cfg.jupiter_swap_api_url,
         &req.input_mint,
         &req.output_mint,
         req.in_amount_lamports,
@@ -305,6 +306,7 @@ pub async fn swap(
     // --- quote (round-trips Jupiter once) ---
     let q = jupiter::quote(
         &s.http,
+        &s.cfg.jupiter_swap_api_url,
         &req.input_mint,
         &req.output_mint,
         req.in_amount_lamports,
@@ -327,6 +329,7 @@ pub async fn swap(
     // --- build & sign swap tx ---
     let swap_b64 = jupiter::swap_transaction_base64(
         &s.http,
+        &s.cfg.jupiter_swap_api_url,
         &q,
         &s.wallet.pubkey().to_string(),
         if req.use_jito { 0 } else { 5_000 },

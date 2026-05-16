@@ -2,8 +2,9 @@ use anyhow::{anyhow, Result};
 use serde::Serialize;
 use serde_json::Value;
 
-const QUOTE_URL: &str = "https://quote-api.jup.ag/v6/quote";
-const SWAP_URL: &str = "https://quote-api.jup.ag/v6/swap";
+fn endpoint(base: &str, path: &str) -> String {
+    format!("{}/{}", base.trim_end_matches('/'), path.trim_start_matches('/'))
+}
 
 pub struct JupQuote(pub Value);
 
@@ -40,13 +41,14 @@ impl JupQuote {
 
 pub async fn quote(
     http: &reqwest::Client,
+    swap_api_base: &str,
     input_mint: &str,
     output_mint: &str,
     amount: u64,
     slippage_bps: u16,
 ) -> Result<JupQuote> {
     let url = reqwest::Url::parse_with_params(
-        QUOTE_URL,
+        &endpoint(swap_api_base, "quote"),
         &[
             ("inputMint", input_mint),
             ("outputMint", output_mint),
@@ -81,6 +83,7 @@ struct SwapBody<'a> {
 
 pub async fn swap_transaction_base64(
     http: &reqwest::Client,
+    swap_api_base: &str,
     quote: &JupQuote,
     user_pubkey: &str,
     priority_lamports: u64,
@@ -93,7 +96,7 @@ pub async fn swap_transaction_base64(
         prioritization_fee_lamports: priority_lamports,
     };
     let v: Value = http
-        .post(SWAP_URL)
+        .post(endpoint(swap_api_base, "swap"))
         .json(&body)
         .send()
         .await?

@@ -4,6 +4,7 @@ use std::env;
 pub struct Config {
     pub bind_addr: String,
     pub rpc_url: String,
+    pub jupiter_swap_api_url: String,
     pub jito_url: String,
     pub phoenix_api_url: String,
     pub phoenix_program_id: Option<String>,
@@ -45,6 +46,8 @@ impl Config {
             bind_addr,
             rpc_url: env::var("SOLANA_RPC_URL")
                 .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".into()),
+            jupiter_swap_api_url: env::var("JUPITER_SWAP_API_URL")
+                .unwrap_or_else(|_| "https://lite-api.jup.ag/swap/v1".into()),
             jito_url: env::var("JITO_BLOCK_ENGINE_URL")
                 .unwrap_or_else(|_| "https://mainnet.block-engine.jito.wtf/api/v1/bundles".into()),
             phoenix_api_url: env::var("PHOENIX_API_URL")
