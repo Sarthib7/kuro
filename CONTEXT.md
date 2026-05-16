@@ -52,6 +52,14 @@ _Avoid_: duplicate handling
 Hard executor limit on size, daily spend, drawdown, collateral, or venue.
 _Avoid_: guideline, preference
 
+**Blocked Decision**:
+Trade Intent rejected by Executor or policy before funds move.
+_Avoid_: failed trade
+
+**Retry Policy**:
+Trading Scope rule that permits bounded retry after a Blocked Decision or failed submission.
+_Avoid_: keep trying
+
 **Hot Wallet**:
 Funded local wallet used by Executor for signing.
 _Avoid_: user account, custody wallet
@@ -88,6 +96,7 @@ _Avoid_: secret signal
 - **Strategy** may recommend action, but **Trading Scope** owns size.
 - **Workflow** may call **Strategy**, notify user, create **Dry Run**, or request **Live Trade**.
 - **Live Trade** must pass **Risk Cap** checks inside **Executor**.
+- **Blocked Decision** is audited and alerted; retry requires explicit **Retry Policy**.
 - **Hot Wallet** belongs to **Executor**, not **Copilot**.
 - **Signal** can influence **Strategy**, but cannot bypass **Risk Cap**.
 - **Position** must reconcile with wallet state after restart or manual user action.
