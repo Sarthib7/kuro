@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kuro AI Trading Copilot Landscape</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #151515;
+        --muted: #666;
+        --line: #ddd;
+        --bg: #f7f7f5;
+        --panel: #fff;
+        --accent: #0f766e;
+        --warn: #9a3412;
+      }
+      body {
+        margin: 0;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+      h2 {
+        margin: 28px 0 12px;
+        font-size: 20px;
+        letter-spacing: 0;
+      }
+      p {
+        max-width: 850px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+      }
+      .metric {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 22px;
+      }
+      .metric span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      th {
+        background: #ececea;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      .tag {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 12px;
+        background: #e6f4f1;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .risk {
+        background: #fff1e8;
+        color: var(--warn);
+      }
+      .notes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .note {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 6px 0;
+      }
+      footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 850px) {
+        .summary,
+        .notes {
+          grid-template-columns: 1fr;
+        }
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Kuro AI Trading Copilot Landscape</h1>
+        <p>
+          Researched 2026-05-17. The AI trading copilot market is already crowded
+          across consumer assistants, Solana copy-trading tools, analytics platforms,
+          and developer frameworks. Kuro's open, self-hosted, executor-enforced
+          model is still differentiated if it focuses on trust and Solana execution.
+        </p>
+      </header>
+
+      <section class="summary">
+        <div class="metric"><strong>Crowded</strong><span>Market density</span></div>
+        <div class="metric"><strong>Data + Trust</strong><span>Best moat</span></div>
+        <div class="metric"><strong>Solana</strong><span>Best beachhead</span></div>
+        <div class="metric"><strong>Guarded</strong><span>Autonomy posture</span></div>
+      </section>
+
+      <h2>Competitive Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Strength</th>
+            <th>Weakness / Opening For Kuro</th>
+            <th>Threat</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://minara.ai/home">Minara</a></td>
+            <td>Consumer AI CFO / trading OS</td>
+            <td><span class="tag">Live</span></td>
+            <td>Broad product: research, spot, perps, workflows, wallet, API, mobile, subscriptions.</td>
+            <td>Closed system, custodial/controller-wallet model, perps restrictions, trust burden.</td>
+            <td><span class="tag risk">High</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://academy.nansen.ai/articles/6550288-about-nansen-ai">Nansen AI</a></td>
+            <td>Onchain analytics + agentic trading</td>
+            <td><span class="tag">Live beta</span></td>
+            <td>500M+ labeled addresses, smart money data, web/mobile trading, strong brand.</td>
+            <td>Less self-hosted; execution currently framed around confirmation and platform UX.</td>
+            <td><span class="tag risk">High</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://solanabox.tools/tools/griffain">Griffain</a></td>
+            <td>Solana agent engine</td>
+            <td><span class="tag">Live</span></td>
+            <td>Delegated-wallet agents, Energy pricing, PumpFun sniper, Jupiter routing.</td>
+            <td>Paid app and delegated model; Kuro can be open, local, and auditable.</td>
+            <td><span class="tag risk">High</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://kowl.io/">KOWL</a></td>
+            <td>Open local Solana AI assistant</td>
+            <td><span class="tag">Live</span></td>
+            <td>Terminal + Telegram, local keys, smart-money scoring, auto mode, SQLite memory.</td>
+            <td>Similar trust story; Kuro must win on executor quality, backtesting, and risk discipline.</td>
+            <td><span class="tag risk">High</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://almanak.co/">Almanak</a></td>
+            <td>DeFi agent framework</td>
+            <td><span class="tag">Live</span></td>
+            <td>Developer/institutional angle, backtesting, Safe accounts, multi-chain connectors.</td>
+            <td>Less consumer-copilot oriented; Kuro can focus on operator UX and Solana speed.</td>
+            <td><span class="tag">Medium</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://coinmarketcap.com/cmc-ai/hey-anon/what-is/">Hey Anon</a></td>
+            <td>Agentic DeFi OS/API</td>
+            <td><span class="tag">Live / ecosystem</span></td>
+            <td>Agentic wallet and DeFi API positioning across networks.</td>
+            <td>Broader infrastructure; Kuro can stay concrete: analysis to execution to audit log.</td>
+            <td><span class="tag">Medium</span></td>
+          </tr>
+          <tr>
+            <td><a href="https://shadowtrade.net/">ShadowTrade</a>, <a href="https://uwuu.ai/">uwuu</a>, copy bots</td>
+            <td>Solana copy trading</td>
+            <td><span class="tag">Live</span></td>
+            <td>Clear user promise: mirror wallets quickly with TP/SL.</td>
+            <td>Narrow and crowded; Kuro should treat copy trading as one workflow, not the whole product.</td>
+            <td><span class="tag">Medium</span></td>
+          </tr>
+          <tr>
+            <td>Kuro</td>
+            <td>Open self-hosted Solana copilot/executor</td>
+            <td><span class="tag">In build</span></td>
+            <td>Rust executor, local keys, hard caps, Solana sniper focus, open-source trust story.</td>
+            <td>Needs web UI, workflow engine, richer data, perps copilot, persistence, notifications.</td>
+            <td><span class="tag">N/A</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="notes">
+        <section class="note">
+          <h2>Substitutes</h2>
+          <ul>
+            <li>DexScreener, GMGN, Jupiter, Photon, Axiom, and Telegram bots used manually.</li>
+            <li>Nansen, Arkham, DeFiLlama, Glassnode, and CoinGlass dashboards.</li>
+            <li>CEX grid/DCA/copy bots on Binance, Bybit, OKX, and Hyperliquid interfaces.</li>
+            <li>General LLM plus browser tabs, spreadsheets, and alerts.</li>
+          </ul>
+        </section>
+        <section class="note">
+          <h2>Dead / Failed Patterns</h2>
+          <ul>
+            <li>Guaranteed-return AI bot marketing is a regulatory and trust hazard.</li>
+            <li>Copy trading low-liquidity wallets can fail through latency, slippage, and wallet crowding.</li>
+            <li>Autonomous agents fail when routing, slippage, balances, and jurisdiction checks live only in prompts.</li>
+            <li>Closed custody without clear audit logs creates a trust gap Kuro can exploit.</li>
+          </ul>
+        </section>
+      </div>
+
+      <h2>Positioning Recommendation</h2>
+      <p>
+        Do not position Kuro as "Minara but cheaper." Position it as the
+        open-source, self-hosted trading copilot where every recommendation,
+        workflow, and transaction is inspectable, simulated, and bounded by
+        executor-enforced risk controls.
+      </p>
+
+      <footer>
+        Primary sources: Minara docs and audit, Nansen Academy, KOWL, Almanak,
+        SolanaBox Griffain, CoinMarketCap Hey Anon overview, and CFTC AI trading
+        bot advisory.
+      </footer>
+    </main>
+  </body>
+</html>
+
