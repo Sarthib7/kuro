@@ -40,6 +40,22 @@ _Avoid_: prompt, vibe, idea
 Market, wallet, or onchain fact used by strategy.
 _Avoid_: alpha unless source + method known
 
+**Brain Agent**:
+Specialized LLM call that produces one Signal from a narrow input slice. Returns analytics or classification, never a trade decision. Run in parallel with other Brain Agents and with deterministic analyzers.
+_Avoid_: AI agent, signal seller, model, recommender
+
+**Decider**:
+Module that turns a candidate (mint + source + signature) into a Trade Intent. Splits enrichment (varies between live + backtest) from judge (a pure function shared by both). LiveDecider runs real RPC + Brain Agents; SimDecider returns injected fixtures.
+_Avoid_: strategy runner, evaluator, judge (alone), engine
+
+**Enrichment Bundle**:
+The facts a Decider gathers about a candidate before judging — deterministic onchain analysis + Brain Agent Signals.
+_Avoid_: context (overloaded), payload, info
+
+**Judge**:
+The pure function inside the Decider Module that converts an Enrichment Bundle into a Trade Intent. Same function used by live trading and backtest; never performs IO.
+_Avoid_: decide (legacy), score, evaluate
+
 **Position**:
 Tracked exposure created by trade or imported wallet state.
 _Avoid_: holding when Kuro cannot track entry/exit
@@ -143,6 +159,11 @@ _Avoid_: free Autopilot
 - **Withdrawal** bypasses **Strategy** and pauses affected **Autopilot** runs first.
 - **Withdrawal** defaults to **Login Wallet**; custom destination requires confirmation.
 - **Signal** can influence **Strategy**, but cannot bypass **Risk Cap**.
+- **Brain Agent** emits **Signal**; multiple Brain Agents run in parallel; only **Strategy** + **Risk Cap** convert Signals into a **Trade Intent**.
+- **Brain Agent** never emits a buy/sell recommendation; producing analytics keeps Kuro outside investment-advice territory.
+- **Decider** owns the seam between live trading and backtest; **LiveDecider** and **SimDecider** are its two **Adapters**.
+- **Decider** produces an **Enrichment Bundle** via `enrich`; **Judge** converts that bundle into a Trade Intent.
+- **Judge** is pure and shared by both Adapters — scoring / venue rules / signal gates live in one Module, eliminating live ↔ backtest drift.
 - **Position** must reconcile with wallet state after restart or manual user action.
 - **Position Mode** defaults to one open **Position** per market per **Strategy**, unless **Trading Scope** explicitly allows scaling.
 - **Managed Runner** may host **Autopilot**, but **Trading Scope** and **Risk Cap** remain user-owned.
