@@ -20,13 +20,14 @@ Not ready:
 
 Run two services:
 
-1. `kuro-executor`: Rust service. Owns hot wallet. Signs txs. Enforces caps. Private HTTP only.
+1. `kuro-executor`: Rust service. Owns hot wallet. Signs txs. Enforces caps.
 2. `kuro-autonomous`: Node worker. Watches pools. Analyzes candidates. Calls Executor.
+3. `kuro-ui`: static browser console. Host separately on Vercel or Cloudflare Pages.
 
-Do not expose Executor publicly. Private service network only.
-
-If public URL is required, set `KURO_EXECUTOR_API_KEY` before funding wallet.
-Without it, anyone can call `/swap`.
+Prefer private executor networking for worker-only operation. If the browser UI
+will call the executor directly, expose the executor URL only with
+`KURO_EXECUTOR_API_KEY` set and `KURO_ALLOWED_ORIGINS` restricted to the exact
+UI origins. Without the API key, anyone can call `/swap`.
 
 ## Railway
 
@@ -50,6 +51,7 @@ JUPITER_SWAP_API_URL=https://lite-api.jup.ag/swap/v1
 PORT=8080
 KURO_BIND=0.0.0.0:8080
 KURO_EXECUTOR_API_KEY=strong-random-secret
+KURO_ALLOWED_ORIGINS=https://YOUR-KURO-UI.vercel.app,https://YOUR-KURO-UI.pages.dev
 KURO_DATA_DIR=/data
 KURO_MAX_TRADE_SOL=0.02
 KURO_DAILY_CAP_SOL=0.1
@@ -65,6 +67,28 @@ Build:
 - Builder: Dockerfile.
 - Dockerfile path: `Dockerfile`.
 - Health path: `/healthz`.
+
+### `kuro-ui`
+
+Root: `site/`
+
+Deploy as a static site on Vercel or Cloudflare Pages. The UI calls the Railway
+executor URL entered in the browser, so the executor must include the UI origin
+in `KURO_ALLOWED_ORIGINS`.
+
+Vercel:
+
+```bash
+cd site
+vercel --prod
+```
+
+Cloudflare Pages:
+
+```bash
+cd site
+npx wrangler pages deploy . --project-name kuro-ui
+```
 
 ### `kuro-autonomous`
 

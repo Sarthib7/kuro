@@ -3,7 +3,11 @@ use serde::Serialize;
 use serde_json::Value;
 
 fn endpoint(base: &str, path: &str) -> String {
-    format!("{}/{}", base.trim_end_matches('/'), path.trim_start_matches('/'))
+    format!(
+        "{}/{}",
+        base.trim_end_matches('/'),
+        path.trim_start_matches('/')
+    )
 }
 
 pub struct JupQuote(pub Value);

@@ -54,6 +54,23 @@ Public route:
 Current Railway production has `KURO_EXECUTOR_API_KEY` set. Unauthenticated
 calls to `/status` should return `401`.
 
+## Browser UI
+
+The minimal console in `site/` is a static app. Host it separately on Vercel or
+Cloudflare Pages, then set the executor's CORS allowlist:
+
+```bash
+KURO_ALLOWED_ORIGINS=https://YOUR-KURO-UI.vercel.app,https://YOUR-KURO-UI.pages.dev
+```
+
+The UI stores two values only in the local browser:
+
+- Executor URL: `https://kuro-production-281c.up.railway.app`
+- Executor key: `KURO_EXECUTOR_API_KEY`
+
+The UI is not a wallet and does not custody funds. It calls the protected
+executor routes with a bearer token.
+
 ## Health
 
 ```bash

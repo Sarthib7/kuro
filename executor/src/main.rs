@@ -2,7 +2,10 @@ use anyhow::Result;
 use axum::{
     body::Body,
     extract::State,
-    http::{header::AUTHORIZATION, Request, StatusCode},
+    http::{
+        header::{AUTHORIZATION, CONTENT_TYPE},
+        HeaderValue, Method, Request, StatusCode,
+    },
     middleware::{from_fn_with_state, Next},
     response::Response,
     routing::{get, post},
@@ -11,6 +14,7 @@ use axum::{
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use std::{net::SocketAddr, sync::Arc};
+use tower_http::cors::{AllowOrigin, CorsLayer};
 use tracing_subscriber::EnvFilter;
 
 mod api;
@@ -58,6 +62,19 @@ async fn require_executor_auth(
     } else {
         Err(StatusCode::UNAUTHORIZED)
     }
+}
+
+fn cors_layer(cfg: &config::Config) -> CorsLayer {
+    let origins = cfg
+        .allowed_origins
+        .iter()
+        .filter_map(|origin| origin.parse::<HeaderValue>().ok())
+        .collect::<Vec<_>>();
+
+    CorsLayer::new()
+        .allow_origin(AllowOrigin::list(origins))
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE])
 }
 
 #[tokio::main]
@@ -109,6 +126,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/healthz", get(api::healthz))
         .merge(protected_routes)
+        .layer(cors_layer(&cfg))
         .with_state(state);
 
     let addr: SocketAddr = cfg.bind_addr.parse()?;

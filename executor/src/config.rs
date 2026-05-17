@@ -6,6 +6,7 @@ pub struct Config {
     pub rpc_url: String,
     pub jupiter_swap_api_url: String,
     pub jito_url: String,
+    pub allowed_origins: Vec<String>,
     pub phoenix_api_url: String,
     pub phoenix_program_id: Option<String>,
     pub phoenix_live_enabled: bool,
@@ -38,6 +39,15 @@ impl Config {
         // otherwise alongside the executor binary in ./executor/. Individual
         // path overrides still win (KURO_KEYPAIR_PATH / KURO_STATE_PATH).
         let data_dir = env::var("KURO_DATA_DIR").unwrap_or_else(|_| "./executor".into());
+        let allowed_origins = env::var("KURO_ALLOWED_ORIGINS").unwrap_or_else(|_| {
+            [
+                "http://localhost:8787",
+                "http://127.0.0.1:8787",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+            ]
+            .join(",")
+        });
         let phoenix_live_enabled = env::var("KURO_PHOENIX_LIVE_ENABLED")
             .map(|s| s == "1" || s.eq_ignore_ascii_case("true"))
             .unwrap_or(false);
@@ -50,6 +60,12 @@ impl Config {
                 .unwrap_or_else(|_| "https://lite-api.jup.ag/swap/v1".into()),
             jito_url: env::var("JITO_BLOCK_ENGINE_URL")
                 .unwrap_or_else(|_| "https://mainnet.block-engine.jito.wtf/api/v1/bundles".into()),
+            allowed_origins: allowed_origins
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(ToOwned::to_owned)
+                .collect(),
             phoenix_api_url: env::var("PHOENIX_API_URL")
                 .unwrap_or_else(|_| "https://perp-api.phoenix.trade".into()),
             phoenix_program_id: env::var("KURO_PHOENIX_PROGRAM_ID")
