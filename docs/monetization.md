@@ -52,6 +52,22 @@ Pro:
 - Hosted Autopilot.
 - Hosted Sniper.
 
+Core Pro packs:
+
+- Sniper Pack.
+- Arbitrage Scanner Pack.
+- Phoenix Perps Pack.
+- Wallet Watch Pack.
+- TP/SL Pack.
+- Telegram Alerts.
+
+Advanced add-ons later:
+
+- Low-Latency Sniper Pack.
+- Direct DEX Arb Pack.
+- Team Watchlists.
+- Custom Strategy Pack.
+
 Hosted Pro:
 
 - Managed Runner per user.

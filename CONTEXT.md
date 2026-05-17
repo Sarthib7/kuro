@@ -133,6 +133,7 @@ _Avoid_: free Autopilot
 - **Sniper** and **Arbitrage Strategy** are both **Strategies** under **Autopilot**.
 - **Arbitrage Scanner** may use aggregated quotes; production **Arbitrage Strategy** needs direct venue adapters.
 - **Strategy** may recommend action, but **Trading Scope** owns size.
+- **Perps Copilot** is a core paid use case; **Live Trade** still requires venue access and activated **Trading Scope**.
 - **Workflow** may call **Strategy**, notify user, create **Dry Run**, or request **Live Trade**.
 - **Live Trade** must pass **Risk Cap** checks inside **Executor**.
 - **Blocked Decision** is audited and alerted; retry requires explicit **Retry Policy**.

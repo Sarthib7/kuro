@@ -20,6 +20,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+watchPatterns = ["/executor/**"]
 
 [deploy]
 startCommand = "kuro-executor"

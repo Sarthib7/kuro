@@ -25,6 +25,7 @@
 
 [build]
 builder = "NIXPACKS"
+watchPatterns = ["/agent/**"]
 
 [deploy]
 startCommand = "npx tsx src/cli.ts autonomous"
