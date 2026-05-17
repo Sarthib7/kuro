@@ -15,6 +15,10 @@ export interface Position {
   closed_at?: number;
   exit_reason?: "take_profit" | "stop_loss" | "max_hold";
   pnl_sol_estimated?: number;
+  /** Brain Agent cache keys that contributed to the entry Trade Intent.
+   *  Used by the autonomous loop to route PnL feedback back to each agent's
+   *  cache for win-rate-driven eviction. See ADR-0006. */
+  contributing_signals?: { agent: string; key: string }[];
 }
 
 export interface PositionsFile {

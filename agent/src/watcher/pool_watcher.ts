@@ -6,7 +6,10 @@ export type PoolSource =
   | "pumpswap"
   | "raydium_amm_v4"
   | "raydium_cpmm"
-  | "meteora_dlmm";
+  | "meteora_dlmm"
+  | "meteora_damm_v2"
+  | "letsbonk"
+  | "moonshot";
 
 const PROGRAMS: Record<PoolSource, PublicKey> = {
   pumpfun: new PublicKey("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"),
@@ -14,6 +17,15 @@ const PROGRAMS: Record<PoolSource, PublicKey> = {
   raydium_amm_v4: new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"),
   raydium_cpmm: new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"),
   meteora_dlmm: new PublicKey("LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"),
+  // Meteora DAMM v2 — dynamic AMM with anti-sniper Fee Scheduler + Rate Limiter.
+  // decide() currently skips this venue (see autonomous/policy.ts and ADR-0006).
+  meteora_damm_v2: new PublicKey("cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG"),
+  // LetsBonk piggies on Raydium LaunchLab — same program ID. This source label
+  // also catches non-LetsBonk LaunchLab launches; V1 acceptable (LetsBonk is ~95%
+  // of LaunchLab activity in May 2026). Refine in V1.5 by checking that the tx
+  // accounts include platform_config FfYek5vEz23cMkWsdJwG2oa6EphsvXSHrGpdALN4g6W1.
+  letsbonk: new PublicKey("LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj"),
+  moonshot: new PublicKey("MoonCVVNZFSYkqNXP6bxHLPL6QQJiMagDL3qcqUQTrG"),
 };
 
 // Substrings in program logs that signal a launch / pool init.
@@ -23,6 +35,13 @@ const SIGNALS: Record<PoolSource, RegExp[]> = {
   raydium_amm_v4: [/initialize2/i],
   raydium_cpmm: [/Instruction:\s*Initialize/],
   meteora_dlmm: [/Instruction:\s*InitializeLbPair/],
+  meteora_damm_v2: [/Instruction:\s*(InitializePool|CreatePool|Initialize)/i],
+  letsbonk: [
+    /Instruction:\s*InitializeV2/,
+    /Instruction:\s*Initialize(?!V|d|s|r|W)/,
+    /Instruction:\s*InitializeWithToken2022/,
+  ],
+  moonshot: [/Instruction:\s*TokenMint/],
 };
 
 export interface PoolCandidate {

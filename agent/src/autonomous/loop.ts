@@ -1,5 +1,4 @@
 import { startPoolWatcher, type PoolCandidate } from "../watcher/pool_watcher.js";
-import { analyzeTokenSkill } from "../skills/analyze_token.js";
 import { snipeSkill } from "../skills/snipe.js";
 import { ExecutorClient } from "../data/executor.js";
 import { getQuote, SOL_MINT } from "../data/jupiter.js";
@@ -9,8 +8,13 @@ import {
   loadPositions,
   type Position,
 } from "./positions.js";
-import { defaultPolicy, decide, type Policy } from "./policy.js";
+import { defaultPolicy, type Policy } from "./policy.js";
+import { LiveDecider, judge } from "./decider.js";
 import type { SkillContext } from "../skills/types.js";
+import { recordOutcomeAllAgents } from "../brain/run.js";
+import type { BrainAgentSeed } from "../brain/signals.js";
+
+const liveDecider = new LiveDecider();
 
 export interface AutonomousHandle {
   stop: () => Promise<void>;
@@ -66,15 +70,22 @@ async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
   const open = loadPositions().open;
   if (open.some((o) => o.mint === c.mint)) return;
 
-  let analysis;
-  try {
-    analysis = await analyzeTokenSkill.execute({ mint: c.mint, topN: 10 }, ctx);
-  } catch (e) {
-    ctx.log("analyze failed", { mint: c.mint, err: String(e) });
+  const seed: BrainAgentSeed = {
+    mint: c.mint,
+    source: c.source,
+    signature: c.signature,
+    detected_at: c.detected_at,
+  };
+
+  // Decider.enrich runs analyze + Brain Agents in parallel; judge() is the pure
+  // policy shared by live + backtest. See decider.ts + ADR-0006.
+  const enrichment = await liveDecider.enrich(seed, ctx);
+  if (!enrichment.analysis) {
+    ctx.log("analyze failed", { mint: c.mint });
     return;
   }
-
-  const decision = decide(analysis, policy);
+  const bundle = enrichment.signals;
+  const decision = judge(seed, enrichment, policy);
   console.log(
     JSON.stringify({
       event: "candidate",
@@ -82,8 +93,18 @@ async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
       mint: c.mint,
       signature: c.signature,
       decision,
-      flags: analysis.flags,
-      top10_pct: Number(analysis.holders.topNPct.toFixed(2)),
+      flags: enrichment.analysis.flags,
+      top10_pct: Number(enrichment.analysis.holders.topNPct.toFixed(2)),
+      signals: bundle.signals.map((s) => ({
+        kind: s.kind,
+        confidence: s.confidence,
+        cached: s.cached,
+        latency_ms: s.latency_ms,
+        ...(s.kind === "dev_wallet" ? { reputation: s.reputation_band } : {}),
+        ...(s.kind === "narrative"
+          ? { themes: s.themes, sentiment: s.sentiment_band }
+          : {}),
+      })),
     }),
   );
   if (decision.action !== "snipe") return;
@@ -111,6 +132,10 @@ async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
       entry_signature: r.swap.signature,
       in_amount_lamports: r.swap.in_amount,
       out_amount_estimated: r.swap.out_amount_estimated,
+      contributing_signals: bundle.signals.map((s) => ({
+        agent: s.agent,
+        key: s.cache_key,
+      })),
     });
   }
 }
@@ -175,5 +200,16 @@ async function maybeExit(
       pnl_sol_estimated: currentSolOut - pos.sol_in,
       exit_reason: reason,
     });
+    // PnL feedback to each contributing Brain Agent's cache — drives
+    // win-rate eviction per ADR-0006. No-op if no signals contributed.
+    if (pos.contributing_signals && pos.contributing_signals.length > 0) {
+      recordOutcomeAllAgents(
+        pos.contributing_signals.map((cs) => ({
+          agent: cs.agent,
+          key: BigInt(cs.key as unknown as string),
+        })),
+        pnlPct,
+      );
+    }
   }
 }

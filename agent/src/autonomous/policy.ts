@@ -1,5 +1,3 @@
-import type { AnalyzeTokenResult } from "../skills/analyze_token.js";
-
 export interface Policy {
   // entry gates
   max_top10_pct: number;
@@ -53,42 +51,6 @@ export function defaultPolicy(): Policy {
   };
 }
 
-export interface Decision {
-  action: "snipe" | "pass";
-  reason?: string;
-  score?: number;
-}
-
-export function decide(analysis: AnalyzeTokenResult, p: Policy): Decision {
-  if (p.require_route && analysis.flags.includes("no_jupiter_route")) {
-    return { action: "pass", reason: "no_route" };
-  }
-  if (
-    p.require_honeypot_pass &&
-    analysis.flags.includes("sell_simulation_failed_possible_honeypot")
-  ) {
-    return { action: "pass", reason: "honeypot_sell_sim_failed" };
-  }
-  if (p.require_renounced_mint && !analysis.authorities.mintRenounced) {
-    return { action: "pass", reason: "mint_authority_not_renounced" };
-  }
-  if (p.require_renounced_freeze && !analysis.authorities.freezeRenounced) {
-    return { action: "pass", reason: "freeze_authority_not_renounced" };
-  }
-  if (analysis.holders.topNPct > p.max_top10_pct) {
-    return {
-      action: "pass",
-      reason: `top_holders_${analysis.holders.topNPct.toFixed(1)}pct`,
-    };
-  }
-  const rt = analysis.honeypotSim?.roundTripSolRetained;
-  if (rt !== undefined && rt < 1 - p.max_round_trip_loss_pct / 100) {
-    return {
-      action: "pass",
-      reason: `round_trip_loss_${((1 - rt) * 100).toFixed(1)}pct`,
-    };
-  }
-  // crude score: lower concentration = higher score (room to refine)
-  const score = Math.max(0, 100 - analysis.holders.topNPct);
-  return { action: "snipe", score };
-}
+// Decision + judge moved to ./decider.ts (Decider seam).
+// Re-exported here so callers that imported Decision from policy still compile.
+export type { Decision } from "./decider.js";
