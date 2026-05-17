@@ -102,10 +102,11 @@ npm run dev -- phoenix-trader
 npm run dev -- phoenix-open SOL long 0.1 10 --dry-run=true
 ```
 
-## Operator docs and landing page
+## Operator docs and UI
 
 - Production runbook: [`docs/production.md`](docs/production.md)
-- Static landing page: [`site/index.html`](site/index.html)
+- Live API guide: [`docs/live-api.md`](docs/live-api.md)
+- Static operator console: [`site/index.html`](site/index.html)
 
 ### Install as a Claude Code skill
 
@@ -118,7 +119,9 @@ Then ask Claude Code naturally: *"kuro, analyze $BONK"*, *"watch for new pump.fu
 
 ## Deploy to Railway
 
-kuro is built to run as two services on [Railway](https://railway.app) — `kuro-executor` (Rust, owns the wallet) and `kuro-autonomous` (Node worker, runs the trading loop). They talk over Railway's internal network so the executor is never exposed publicly.
+kuro is built to run with the executor on [Railway](https://railway.app) and the UI as a separate static app. Keep `kuro-executor` (Rust, owns the wallet) on Railway with a volume. Host `site/` on Vercel or Cloudflare Pages, then add that UI origin to `KURO_ALLOWED_ORIGINS`.
+
+For worker-only operation, `kuro-autonomous` should call the executor over Railway's internal network. For browser operation, the executor needs a public URL, `KURO_EXECUTOR_API_KEY`, and a narrow CORS allowlist.
 
 **One-time setup**
 
@@ -132,13 +135,18 @@ kuro is built to run as two services on [Railway](https://railway.app) — `kuro
      PORT=8080
      KURO_BIND=0.0.0.0:8080
      KURO_EXECUTOR_API_KEY=strong-random-secret
+     KURO_ALLOWED_ORIGINS=https://YOUR-KURO-UI.vercel.app,https://YOUR-KURO-UI.pages.dev
      KURO_DATA_DIR=/data
      KURO_MAX_TRADE_SOL=0.02
      KURO_DAILY_CAP_SOL=0.1
      KURO_DRAWDOWN_KILL_PCT=20
      ```
    - Deploy. The executor will auto-generate `/data/keypair.json` on first boot.
-3. **Service 2 — `kuro-autonomous`**
+3. **Static UI — `site/`**
+   - Deploy separately on Vercel or Cloudflare Pages.
+   - Use executor URL `https://kuro-production-281c.up.railway.app` or your own Railway domain.
+   - Paste `KURO_EXECUTOR_API_KEY` into the UI when connecting. It stays in browser local storage.
+4. **Service 2 — `kuro-autonomous`**
    - Set service root directory to `agent/`
    - Attach a separate Volume mounted at `/data` (≥ 1 GB) — holds open/closed position state
    - Set env vars:

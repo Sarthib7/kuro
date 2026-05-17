@@ -5,132 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="kuro is an open, self-hosted Solana trading agent for token analysis, dry-run automation, guarded execution, and Phoenix perps simulation."
+      content="Kuro is a self-hosted Solana trading copilot with local keys, dry-run previews, and executor-enforced risk caps."
     />
-    <title>kuro | Self-hosted Solana trading agent</title>
+    <title>Kuro Console</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="topbar" aria-label="Primary navigation">
-      <a class="brand" href="#top" aria-label="kuro home">kuro</a>
-      <nav>
-        <a href="#onboard">Onboard</a>
-        <a href="#operate">Operate</a>
-        <a href="#readiness">Readiness</a>
-      </nav>
-    </header>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Kuro navigation">
+        <a class="brand" href="/" aria-label="Kuro console">
+          <span class="brand-mark" aria-hidden="true">K</span>
+          <span>
+            <strong>Kuro</strong>
+            <small>Operator console</small>
+          </span>
+        </a>
+        <nav>
+          <a href="#console">Console</a>
+          <a href="#trade">Trade</a>
+          <a href="#phoenix">Phoenix</a>
+          <a href="#workflow">Workflow</a>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="railway-state">Checking live executor</span>
+        </div>
+      </aside>
 
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <canvas id="market-scene" aria-hidden="true"></canvas>
-        <div class="hero-copy">
-          <p class="eyebrow">Open, self-hosted, Solana-first</p>
-          <h1 id="hero-title">kuro</h1>
-          <p class="lede">
-            A personal AI CFO that analyzes mints, watches launches, simulates
-            strategies, and routes guarded execution through your own Rust
-            wallet service.
-          </p>
-          <div class="hero-actions" aria-label="Primary actions">
-            <a class="button primary" href="../docs/production.md">Production runbook</a>
-            <a class="button secondary" href="../README.md">Read the docs</a>
+      <main>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Self-hosted Solana copilot</p>
+            <h1>Research, preview, then trade inside caps.</h1>
           </div>
-        </div>
-        <div class="hero-status" aria-label="Current product status">
-          <span>Dry-run ready</span>
-          <span>Live gated</span>
-          <span>Phoenix simulation</span>
-        </div>
-      </section>
+          <form id="key-form" class="key-form" aria-label="Executor connection">
+            <label for="api-base">Executor URL</label>
+            <input
+              id="api-base"
+              name="api-base"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              spellcheck="false"
+              placeholder="https://kuro-production-281c.up.railway.app"
+            />
+            <label for="api-key">Executor key</label>
+            <div class="key-row">
+              <input
+                id="api-key"
+                name="api-key"
+                type="password"
+                autocomplete="current-password"
+                spellcheck="false"
+                placeholder="Bearer token"
+              />
+              <button type="button" id="toggle-key" class="icon-button" aria-label="Show executor key">Show</button>
+              <button type="submit">Connect</button>
+            </div>
+            <p id="key-help">Stored only in this browser. Use the Railway URL for API, then add the executor key for protected routes.</p>
+          </form>
+        </header>
 
-      <section id="onboard" class="band">
-        <div class="section-heading">
-          <p class="eyebrow">Onboarding</p>
-          <h2>Start with visibility, then unlock execution.</h2>
-        </div>
-        <div class="steps" aria-label="Onboarding steps">
-          <article>
-            <span class="step-index">01</span>
-            <h3>Run locally</h3>
-            <p>Start the executor, install the agent, and use read-only token and Phoenix market commands.</p>
-            <code>npm run dev -- phoenix-markets SOL</code>
-          </article>
-          <article>
-            <span class="step-index">02</span>
-            <h3>Dry-run automation</h3>
-            <p>Let the watcher and policy produce decisions without submitting transactions.</p>
-            <code>KURO_AUTONOMOUS_LIVE=false</code>
-          </article>
-          <article>
-            <span class="step-index">03</span>
-            <h3>Host privately</h3>
-            <p>Deploy executor and agent as separate services, with the executor reachable only over private networking.</p>
-            <code>KURO_EXECUTOR_URL=http://kuro-executor.internal:7777</code>
-          </article>
-          <article>
-            <span class="step-index">04</span>
-            <h3>Flip live deliberately</h3>
-            <p>Fund a capped hot wallet, pin live flags, and keep dry-run evidence before enabling any live path.</p>
-            <code>KURO_MAX_TRADE_SOL=0.02</code>
-          </article>
-        </div>
-      </section>
+        <section id="console" class="grid hero-grid" aria-label="Console overview">
+          <section class="panel intent-panel" aria-labelledby="intent-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Intent console</p>
+                <h2 id="intent-title">Ask Kuro for the next move.</h2>
+              </div>
+              <span class="pill">Dry-run first</span>
+            </div>
+            <div class="chat-log" aria-live="polite">
+              <div class="message user">Analyze SOL perps and prepare a small long preview.</div>
+              <div class="message assistant">
+                Use <strong>Phoenix Signal</strong>, check executor caps, then simulate an isolated order. Live mode stays disabled until scope is activated.
+              </div>
+            </div>
+            <form id="intent-form" class="intent-form">
+              <label for="intent">Intent</label>
+              <div class="intent-row">
+                <input
+                  id="intent"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="true"
+                  value="Preview 0.001 SOL to USDC"
+                />
+                <button type="submit">Stage</button>
+              </div>
+              <p class="field-note">Minimal UI stages intent text only. The forms below call your Railway executor.</p>
+            </form>
+          </section>
 
-      <section id="operate" class="band contrast">
-        <div class="section-heading">
-          <p class="eyebrow">Operating model</p>
-          <h2>Two services, one authority boundary.</h2>
-        </div>
-        <div class="ops-grid">
-          <article>
-            <h3>Executor</h3>
-            <p>Rust service that owns the hot wallet, signs transactions, simulates Phoenix orders, and rejects requests that exceed caps.</p>
-          </article>
-          <article>
-            <h3>Agent</h3>
-            <p>Node worker that watches markets, runs analysis, calls LLM tools, and forwards allowed intents to the executor.</p>
-          </article>
-          <article>
-            <h3>State</h3>
-            <p>Volumes keep wallet, risk state, and positions stable across deploys while the next persistence layer is built.</p>
-          </article>
-        </div>
-      </section>
+          <section class="panel status-panel" aria-labelledby="status-title">
+            <div class="panel-heading tight">
+              <div>
+                <p class="eyebrow">Executor</p>
+                <h2 id="status-title">Live status</h2>
+              </div>
+              <button type="button" id="refresh-status">Refresh</button>
+            </div>
+            <div id="status-error" class="alert hidden" role="alert"></div>
+            <dl class="metrics">
+              <div>
+                <dt>Wallet</dt>
+                <dd id="wallet">Locked</dd>
+              </div>
+              <div>
+                <dt>Balance</dt>
+                <dd id="balance">-- SOL</dd>
+              </div>
+              <div>
+                <dt>Per trade</dt>
+                <dd id="max-trade">-- SOL</dd>
+              </div>
+              <div>
+                <dt>Daily cap</dt>
+                <dd id="daily-cap">-- SOL</dd>
+              </div>
+              <div>
+                <dt>Phoenix live</dt>
+                <dd id="phoenix-live">--</dd>
+              </div>
+              <div>
+                <dt>Drawdown lock</dt>
+                <dd id="drawdown">--</dd>
+              </div>
+            </dl>
+          </section>
+        </section>
 
-      <section id="readiness" class="band">
-        <div class="section-heading">
-          <p class="eyebrow">Production readiness</p>
-          <h2>Good for hosted dry-runs. Not yet for unattended live capital.</h2>
-        </div>
-        <div class="readiness-grid">
-          <article>
-            <h3>Ready now</h3>
-            <ul>
-              <li>Token analysis and pool watching</li>
-              <li>Backtest harness</li>
-              <li>Guarded spot swap executor</li>
-              <li>Phoenix market and trader reads</li>
-              <li>Phoenix dry-run transaction simulation</li>
-            </ul>
-          </article>
-          <article>
-            <h3>Before live</h3>
-            <ul>
-              <li>Private executor networking</li>
-              <li>SQLite persistence and reconciliation</li>
-              <li>Structured logs and alerts</li>
-              <li>24h clean dry-run window</li>
-              <li>Backtest acceptance threshold</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-    </main>
+        <section class="grid trade-grid" aria-label="Trading actions">
+          <section id="trade" class="panel" aria-labelledby="quote-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Spot route</p>
+                <h2 id="quote-title">Quote and dry-run swap</h2>
+              </div>
+            </div>
+            <form id="swap-form" class="form-grid">
+              <label>
+                Input mint
+                <input id="input-mint" type="text" autocomplete="off" spellcheck="false" value="So11111111111111111111111111111111111111112" />
+              </label>
+              <label>
+                Output mint
+                <input id="output-mint" type="text" autocomplete="off" spellcheck="false" value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" />
+              </label>
+              <label>
+                Amount lamports
+                <input id="amount-lamports" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="1000000" />
+              </label>
+              <label>
+                Slippage bps
+                <input id="slippage-bps" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="100" />
+              </label>
+              <div class="button-row">
+                <button type="submit" data-action="quote">Get quote</button>
+                <button type="submit" data-action="dry-run" class="secondary">Dry-run swap</button>
+              </div>
+            </form>
+            <pre id="swap-output" class="output" aria-live="polite">Connect executor key, then request a quote.</pre>
+          </section>
 
-    <footer>
-      <span>MIT licensed</span>
-      <a href="https://github.com/Sarthib7/kuro">GitHub</a>
-    </footer>
+          <section id="phoenix" class="panel" aria-labelledby="phoenix-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Phoenix perps</p>
+                <h2 id="phoenix-title">Isolated order simulation</h2>
+              </div>
+              <span class="pill muted">Live disabled</span>
+            </div>
+            <form id="phoenix-form" class="form-grid">
+              <label>
+                Symbol
+                <input id="phoenix-symbol" type="text" autocomplete="off" spellcheck="false" value="SOL" />
+              </label>
+              <label>
+                Side
+                <select id="phoenix-side">
+                  <option value="bid">Long</option>
+                  <option value="ask">Short</option>
+                </select>
+              </label>
+              <label>
+                Quantity
+                <input id="phoenix-quantity" type="text" inputmode="decimal" autocomplete="off" value="0.01" />
+              </label>
+              <label>
+                Collateral USDC
+                <input id="phoenix-collateral" type="text" inputmode="decimal" autocomplete="off" value="10" />
+              </label>
+              <button type="submit">Simulate Phoenix order</button>
+            </form>
+            <pre id="phoenix-output" class="output" aria-live="polite">Simulation stays dry-run by default.</pre>
+          </section>
+        </section>
+
+        <section id="workflow" class="grid workflow-grid" aria-label="Workflow and market view">
+          <section class="panel" aria-labelledby="workflow-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Workflow</p>
+                <h2 id="workflow-title">Minara-style scopes, Kuro guardrails.</h2>
+              </div>
+            </div>
+            <div class="timeline">
+              <div><strong>Trigger</strong><span>Price, wallet, pool, schedule</span></div>
+              <div><strong>Condition</strong><span>Liquidity, holders, risk score, caps</span></div>
+              <div><strong>Action</strong><span>Notify, dry-run, live trade after scope</span></div>
+            </div>
+          </section>
+          <section class="panel market-panel" aria-labelledby="market-title">
+            <div class="panel-heading tight">
+              <div>
+                <p class="eyebrow">Market tape</p>
+                <h2 id="market-title">Visual feed</h2>
+              </div>
+            </div>
+            <canvas id="market-canvas" width="720" height="260" aria-label="Animated market chart"></canvas>
+          </section>
+        </section>
+      </main>
+    </div>
 
     <script src="./app.js" type="module"></script>
   </body>
