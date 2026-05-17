@@ -120,10 +120,15 @@ _Avoid_: anonymous managed account
 User-confirmed Live Trade created from Copilot preview outside Autopilot.
 _Avoid_: strategy trade
 
+**Free Copilot**:
+Basic hosted product for normal users: wallet, deposit, withdrawal, basic research, dry-run, and manual swap.
+_Avoid_: free Autopilot
+
 ## Relationships
 
 - **Copilot** proposes; **Executor** enforces.
 - **Manual Trade** is user-confirmed and outside **Autopilot**.
+- **Free Copilot** excludes **Sniper**, **Arbitrage Scanner**, **Workflow**, **Autopilot**, and **Strategy Pack**.
 - **Autopilot** runs one or more **Strategies** inside one **Trading Scope**.
 - **Sniper** and **Arbitrage Strategy** are both **Strategies** under **Autopilot**.
 - **Arbitrage Scanner** may use aggregated quotes; production **Arbitrage Strategy** needs direct venue adapters.
