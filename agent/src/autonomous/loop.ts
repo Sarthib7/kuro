@@ -16,6 +16,37 @@ import type { BrainAgentSeed } from "../brain/signals.js";
 
 const liveDecider = new LiveDecider();
 
+/**
+ * Bankroll cache — refreshed at most every BANKROLL_TTL_MS via /status.
+ * Live trades scale with current wallet balance (KURO_SNIPE_PCT_OF_BANKROLL)
+ * so the same code works from 1 SOL to 1000 SOL without env changes.
+ * Falls back to absolute snipe_sol if pct is 0 or /status is unreachable.
+ */
+const BANKROLL_TTL_MS = 60_000;
+let cachedBankroll: { sol: number; at: number } | null = null;
+
+async function getBankrollSol(exec: ExecutorClient): Promise<number | null> {
+  if (cachedBankroll && Date.now() - cachedBankroll.at < BANKROLL_TTL_MS) {
+    return cachedBankroll.sol;
+  }
+  try {
+    const status = await exec.status();
+    cachedBankroll = { sol: status.balance_sol, at: Date.now() };
+    return status.balance_sol;
+  } catch {
+    return cachedBankroll?.sol ?? null;
+  }
+}
+
+async function computeSnipeSol(policy: Policy, exec: ExecutorClient): Promise<number> {
+  if (policy.snipe_pct_of_bankroll <= 0) return policy.snipe_sol;
+  const bankroll = await getBankrollSol(exec);
+  if (!bankroll || bankroll <= 0) return policy.snipe_sol;
+  const fromPct = (bankroll * policy.snipe_pct_of_bankroll) / 100;
+  const cap = (bankroll * policy.max_snipe_pct) / 100;
+  return Math.min(fromPct, cap);
+}
+
 export interface AutonomousHandle {
   stop: () => Promise<void>;
 }
@@ -47,7 +78,7 @@ export async function runAutonomous(
     {
       rpcUrl: process.env.SOLANA_RPC_URL,
       async onCandidate(c: PoolCandidate, ctx) {
-        await onNewPool(c, policy, ctx);
+        await onNewPool(c, policy, exec, ctx);
       },
     },
     ctx,
@@ -65,7 +96,12 @@ export async function runAutonomous(
   };
 }
 
-async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
+async function onNewPool(
+  c: PoolCandidate,
+  policy: Policy,
+  exec: ExecutorClient,
+  ctx: SkillContext,
+) {
   if (!c.mint) return;
   const open = loadPositions().open;
   if (open.some((o) => o.mint === c.mint)) return;
@@ -109,10 +145,11 @@ async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
   );
   if (decision.action !== "snipe") return;
 
+  const sizedSol = await computeSnipeSol(policy, exec);
   const r = await snipeSkill.execute(
     {
       mint: c.mint,
-      sol_amount: policy.snipe_sol,
+      sol_amount: sizedSol,
       max_slippage_bps: policy.max_slippage_bps,
       use_jito: policy.use_jito,
       jito_tip_sol: policy.jito_tip_sol,
@@ -121,13 +158,20 @@ async function onNewPool(c: PoolCandidate, policy: Policy, ctx: SkillContext) {
     },
     ctx,
   );
-  console.log(JSON.stringify({ event: "snipe_result", mint: c.mint, result: r }));
+  console.log(
+    JSON.stringify({
+      event: "snipe_result",
+      mint: c.mint,
+      sized_sol: sizedSol,
+      result: r,
+    }),
+  );
   if (r.preflight !== "passed" || !r.swap || r.swap.risk.status !== "passed") return;
   if (!policy.dry_run && r.swap.signature) {
     addOpenPosition({
       mint: c.mint,
       source: c.source,
-      sol_in: policy.snipe_sol,
+      sol_in: sizedSol,
       opened_at: Date.now(),
       entry_signature: r.swap.signature,
       in_amount_lamports: r.swap.in_amount,

@@ -6,8 +6,12 @@ export interface Policy {
   require_route: boolean;
   require_honeypot_pass: boolean;
   max_round_trip_loss_pct: number;
-  // sizing
+  // sizing — absolute fallback used when snipe_pct_of_bankroll = 0
   snipe_sol: number;
+  /** % of live bankroll per snipe; 0 = disabled, fall back to snipe_sol. */
+  snipe_pct_of_bankroll: number;
+  /** Hard ceiling on per-snipe pct regardless of confidence multipliers (V2). */
+  max_snipe_pct: number;
   max_slippage_bps: number;
   jito_tip_sol: number;
   use_jito: boolean;
@@ -41,6 +45,8 @@ export function defaultPolicy(): Policy {
     require_honeypot_pass: true,
     max_round_trip_loss_pct: numEnv("KURO_MAX_ROUND_TRIP_LOSS_PCT", 25),
     snipe_sol: numEnv("KURO_SNIPE_SOL", 0.02),
+    snipe_pct_of_bankroll: numEnv("KURO_SNIPE_PCT_OF_BANKROLL", 0),
+    max_snipe_pct: numEnv("KURO_MAX_SNIPE_PCT", 10),
     max_slippage_bps: numEnv("KURO_MAX_SLIPPAGE_BPS", 1500),
     jito_tip_sol: numEnv("KURO_JITO_TIP_SOL", 0.0002),
     use_jito: boolEnv("KURO_USE_JITO", true),
