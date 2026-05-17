@@ -10,6 +10,7 @@ Do not monetize user PnL.
 Do not pool funds.
 Do not custody funds.
 Do not market guaranteed returns.
+Do respect privacy-first DeFi access. No KYC by default.
 
 CFTC warns AI trading bot / crypto-asset schemes promising high or guaranteed returns are fraud pattern. SEC / FINRA / NASAA warn AI investment claims are fraud vector.
 
@@ -24,18 +25,22 @@ Open-core + hosted Pro.
 
 Free:
 
-- CLI.
-- Local Executor.
+- Normal-user Copilot.
 - Basic token analysis.
+- Basic wallet/status view.
 - Dry-run swaps.
-- Basic watcher.
-- Basic backtest.
 - Docs.
+- Hosted manual live trade may charge Execution Fee.
+- No hosted Autopilot.
+- No hosted Sniper.
+- No hosted Arbitrage Scanner.
+- No advanced skills/use-case packs.
 
 Pro:
 
 - Web console.
 - Strategy Pack.
+- Skill/use-case packs.
 - Workflow builder.
 - Telegram/Discord alerts.
 - Better backtest reports.
@@ -44,6 +49,8 @@ Pro:
 - Sniper dashboard.
 - Audit logs.
 - Multi-RPC / Helius / Jito config helpers.
+- Hosted Autopilot.
+- Hosted Sniper.
 
 Hosted Pro:
 
@@ -56,6 +63,13 @@ Hosted Pro:
 - Managed updates.
 - No custody beyond user-funded runner wallet.
 
+Infra packaging:
+
+- Pro Local: user supplies keys.
+- Hosted Runner Basic: user supplies keys by default.
+- Low-Latency Pro: Kuro-managed infra bundle.
+- Enterprise: dedicated infra + support.
+
 Enterprise / Team:
 
 - Private deploy.
@@ -64,6 +78,24 @@ Enterprise / Team:
 - Dedicated low-latency infra.
 - Custom data adapters.
 - Compliance/audit export.
+
+Privacy posture:
+
+- Self-hosted: no KYC.
+- Pro Local: no KYC.
+- Hosted Runner: no KYC by default.
+- Collect only account/payment data required to operate product.
+- Respect venue/legal restrictions, especially perps.
+
+Account posture:
+
+- Wallet-login only.
+- Login Wallet signs auth challenge.
+- Hosted Runner creates separate Hot Wallet.
+- Email not required for product use.
+- Optional contacts can come later for alerts/billing, but not as identity anchor.
+- Withdrawal defaults to Login Wallet.
+- Custom withdrawal address requires confirmation.
 
 ## Pricing Sketch
 
@@ -78,6 +110,16 @@ Keep simple early:
 | Team/Enterprise | Custom | desks/builders | private deploy, support, custom adapters |
 
 Do not take performance fee early. Creates legal/compliance load. Also hard to attribute returns.
+
+Execution Fee policy:
+
+- Free tier may charge explicit per-trade Execution Fee.
+- Paid plans may waive or reduce Execution Fee as perk.
+- Hosted Runner uses subscription first; Execution Fee optional.
+- Every Execution Fee must show before Live Trade.
+- No hidden spread.
+- Fee collection must use protocol-supported fee route.
+- If route cannot show/support fee cleanly, charge zero or block fee route.
 
 ## What To Sell First
 
@@ -95,6 +137,7 @@ Paid unlock:
 
 - `web` dashboard.
 - Strategy Pack.
+- Skill/use-case packs.
 - Workflow templates.
 - Backtest report export.
 - Telegram alerts.
@@ -135,8 +178,9 @@ Features worth charging:
 
 Packaging:
 
-- OSS: one pool watcher + manual dry-run.
-- Pro: multi-watchlist, smart-money scoring, strategy templates, alerts, backtest reports.
+- OSS: local pool watcher + manual dry-run.
+- Free hosted: no Sniper.
+- Pro: hosted Sniper, multi-watchlist, smart-money scoring, strategy templates, alerts, backtest reports.
 - Hosted: 24/7 runner + monitoring.
 
 ## Arbitrage Product
@@ -190,6 +234,7 @@ Hosted Runner must be per-user isolated:
 
 - One user.
 - One hot wallet.
+- One Funding Address / QR.
 - One Trading Scope.
 - No pooled funds.
 - No shared strategy wallet.
@@ -208,6 +253,23 @@ Minimum controls:
 - Audit log.
 - Dry-run mode.
 - User-owned secrets or isolated secrets store.
+
+Hosted onboarding:
+
+1. Kuro creates isolated runner.
+2. Runner creates Hot Wallet.
+3. UI shows Funding Address + QR.
+4. User funds only max acceptable loss.
+5. User selects Strategy Pack.
+6. User activates Trading Scope.
+7. Executor trades only inside caps.
+
+Withdrawal is P0:
+
+- User can withdraw anytime.
+- UI shows balance, Funding Address, QR, and withdraw action.
+- Withdrawal pauses affected Autopilot runs first.
+- Withdrawal bypasses Strategy logic.
 
 ## Revenue Roadmap
 
